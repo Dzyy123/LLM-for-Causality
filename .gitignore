@@ -1,0 +1,134 @@
+# ----------------------------------------------------------------
+# .gitignore for Python Projects
+#
+# 来源：基于GitHub官方模板和社区最佳实践的综合版本
+# ----------------------------------------------------------------
+
+# 1. 字节码和缓存文件 (Byte-compiled and cache files)
+# 这些是Python解释器自动生成的文件，不应纳入版本控制。
+*.py[cod]
+*.pyc
+*.pyo
+__pycache__/
+.cache/
+
+# 2. 虚拟环境 (Virtual Environments)
+# 虚拟环境应在每台机器上单独创建，而不是提交。
+# 常见的环境目录名：
+.env
+.venv
+env/
+venv/
+ENV/
+VENV/
+*/env/
+*/venv/
+.python-version
+
+# 3. 发行和打包 (Distribution / Packaging)
+# 在构建和发布项目时生成的临时文件和最终包。
+.eggs/
+*.egg-info/
+*.egg
+build/
+dist/
+downloads/
+sdist/
+*.tar.gz
+*.whl
+wheels/
+*.manifest
+MANIFEST
+
+# 4. 测试和覆盖率 (Testing and Coverage)
+# 测试框架和代码覆盖率工具生成的报告和缓存。
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+nosetests.xml
+TESTS_RESULTS*/
+pytest-results.xml
+allure_report/
+allure-results/
+
+# 5. IDE 和编辑器配置 (IDE and Editor Configs)
+# 个人开发环境的设置，不应强制他人使用。
+# --- Visual Studio Code ---
+.vscode/
+*.code-workspace
+
+# --- PyCharm / IntelliJ ---
+.idea/
+*.iml
+*.iws
+
+# --- Sublime Text ---
+*.sublime-project
+*.sublime-workspace
+
+# --- Vim ---
+*.swp
+*.swo
+*~
+.vimrc
+.viminfo
+
+# --- Emacs ---
+*#
+.#*
+*~
+
+# 6. 操作系统生成的文件 (OS-specific files)
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+__MACOSX/
+
+# --- Windows ---
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# 7. 敏感信息和本地配置 (Secrets and Local Configs)
+# !! 永远不要提交密钥、密码或证书 !!
+*.env
+.env.*
+.env.local
+config.ini
+config.json
+secrets.yml
+*.key
+*.pem
+*.token
+credentials.*
+*.log
+
+# 8. 日志文件 (Log files)
+# 日志文件通常包含特定于环境的信息，并且会频繁变化。
+*.log
+logs/
+*.log.*
+
+# 9. Jupyter Notebook
+# Notebook的检查点文件不应被追踪。
+.ipynb_checkpoints/
+
+# 10. 特定库的缓存 (Library-specific cache)
+# 例如：mypy, flake8, black
+.mypy_cache/
+.flake8
+.black_cache
+
+# 11. 数据库文件 (Database files)
+# 本地开发的数据库文件。
+*.db
+*.sqlite
+*.sqlite3
+db.sqlite3
