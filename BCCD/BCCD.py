@@ -701,6 +701,13 @@ class BCCD:
         if verbose:
             print("\n" + "=" * 70)
             print("BCCD 算法完成!")
+            print("独立性测试结果摘要:")
+            for result in self.independence_results:
+                x_name = self.variable_names[result.x]
+                y_name = self.variable_names[result.y]
+                z_names = [self.variable_names[z] for z in result.z]
+                print(f"  测试: {x_name} ⊥ {y_name} | {z_names} => P={result.probability:.4f}, "
+                      f"Stat={result.test_statistic:.4f}, p-value={result.p_value:.4f}")
             print("=" * 70)
         
         return self
@@ -1492,8 +1499,8 @@ def main():
     
     # 真实因果结构: X0 → X1 → X2, X0 → X2
     X0 = np.random.randn(n_samples)
-    X1 = 0.8 * X0 + np.random.randn(n_samples) * 0.5
-    X2 = 0.6 * X1 + 0.4 * X0 + np.random.randn(n_samples) * 0.5
+    X1 = 0.8 * X0 + np.random.randn(n_samples) * 1.75
+    X2 = 0.6 * X1 + 0.4 * X0 + np.random.randn(n_samples) * 1.75
     
     data = pd.DataFrame({
         'X0': X0,
@@ -1513,7 +1520,7 @@ def main():
         method='fisherz'
     )
     
-    bccd.fit()
+    bccd.fit(verbose=True)
     
     # 打印摘要
     bccd.print_summary()

@@ -132,3 +132,8 @@ logs/
 *.sqlite
 *.sqlite3
 db.sqlite3
+
+# 12. 本地模型文件 (Local Model Files)
+# 本地存储的模型文件，不应提交到版本控制。
+model/
+models/
