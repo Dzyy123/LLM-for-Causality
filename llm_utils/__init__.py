@@ -44,6 +44,8 @@ from llm_utils.data_types import (
     ChatMessage,
 )
 
+from llm_utils.conversation import Conversation
+
 from llm_utils.base_client import BaseLLMClient
 
 from llm_utils.online_client import OnlineLLMClient
@@ -63,6 +65,8 @@ __all__ = [
     "ResponseFormat",
     "LLMResponse",
     "ChatMessage",
+    # Conversation
+    "Conversation",
     # Clients
     "BaseLLMClient",
     "OnlineLLMClient",

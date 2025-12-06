@@ -116,10 +116,10 @@ class LocalLLMClient(BaseLLMClient):
             RuntimeError: If model download or validation fails.
         """
         if self._validate_local_model():
-            logger.info("Model found at local path: %s", self.local_path)
+            logger.info("Model found and validated at local path: %s", self.local_path)
             return self.local_path
         
-        logger.info("Model not found locally, downloading: %s", self.model_id)
+        logger.info("Model not found locally or invalid, downloading: %s", self.model_id)
         return self._download_model()
     
     def _validate_local_model(self) -> bool:
@@ -335,87 +335,194 @@ class LocalLLMClient(BaseLLMClient):
         Args:
             prompt (str): The formatted prompt string.
             **kwargs: Additional generation parameters.
+                return_token_probs (bool): Includes token probabilities in the response metadata. Defaults to True.
         
         Returns:
-            LLMResponse: Standardized LLM response object.
+            LLMResponse: Standardized LLM response object with optional token
+                probabilities in metadata['token_probabilities'].
         """
         temperature = kwargs.get("temperature", self.temperature)
         max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        return_token_probs = kwargs.get("return_token_probs", True)
         
         inputs = self._tokenizer(prompt, return_tensors="pt").to(self._model.device)
         input_length = inputs.input_ids.shape[1]
         
-        with torch.no_grad():
-            outputs = self._model.generate(
-                **inputs,
-                max_new_tokens=max_tokens,
-                temperature=temperature if temperature > 0 else None,
-                do_sample=temperature > 0,
-                pad_token_id=self._tokenizer.eos_token_id
-            )
-        
-        # Decode only the generated part
-        generated_tokens = outputs[0][input_length:]
-        content = self._tokenizer.decode(generated_tokens, skip_special_tokens=True)
-        
-        return LLMResponse(
-            content=content.strip(),
-            raw_response=outputs,
-            metadata={
+        if return_token_probs:
+            # Generate with output_scores to get token probabilities
+            with torch.no_grad():
+                outputs = self._model.generate(
+                    **inputs,
+                    max_new_tokens=max_tokens,
+                    temperature=temperature if temperature > 0 else None,
+                    do_sample=temperature > 0,
+                    pad_token_id=self._tokenizer.eos_token_id,
+                    output_scores=True,
+                    return_dict_in_generate=True
+                )
+            
+            generated_tokens = outputs.sequences[0][input_length:]
+            content = self._tokenizer.decode(generated_tokens, skip_special_tokens=True)
+            
+            # Extract token probabilities
+            token_probs = []
+            for i, score in enumerate(outputs.scores):
+                probs = F.softmax(score[0], dim=-1)
+                token_id = generated_tokens[i].item()
+                token_str = self._tokenizer.decode([token_id])
+                token_prob = probs[token_id].item()
+                token_probs.append({
+                    "token": token_str,
+                    "token_id": token_id,
+                    "probability": token_prob
+                })
+            
+            metadata = {
+                "model": self.model_id,
+                "input_tokens": input_length,
+                "output_tokens": len(generated_tokens),
+                "token_probabilities": token_probs
+            }
+        else:
+            # Standard generation without probabilities
+            with torch.no_grad():
+                outputs = self._model.generate(
+                    **inputs,
+                    max_new_tokens=max_tokens,
+                    temperature=temperature if temperature > 0 else None,
+                    do_sample=temperature > 0,
+                    pad_token_id=self._tokenizer.eos_token_id
+                )
+            
+            generated_tokens = outputs[0][input_length:]
+            content = self._tokenizer.decode(generated_tokens, skip_special_tokens=True)
+            
+            metadata = {
                 "model": self.model_id,
                 "input_tokens": input_length,
                 "output_tokens": len(generated_tokens)
             }
+        
+        return LLMResponse(
+            content=content.strip(),
+            raw_response=outputs,
+            metadata=metadata
         )
     
     def get_token_probabilities(
         self,
-        prompt: str,
-        target_tokens: Optional[List[str]] = None,
-        top_k: int = 20
+        response: LLMResponse,
+        aggregate: str = "first",
+        skip_thinking: bool = False
     ) -> Dict[str, float]:
-        """Get token probabilities for the next token prediction.
+        """Extract token probabilities from a generated response.
+        
+        This method extracts the probability of each token that was generated
+        in the response. The response must have been generated with the
+        return_token_probs=True parameter.
         
         Args:
-            prompt (str): The input prompt.
-            target_tokens (Optional[List[str]]): Optional list of specific tokens
-                to get probabilities for. If None, returns top_k most likely tokens.
-            top_k (int): Number of top tokens to return if target_tokens is None.
-                Defaults to 20.
+            response (LLMResponse): The response object containing token probabilities.
+                Must have 'token_probabilities' in metadata.
+            aggregate (str): How to aggregate probabilities for repeated tokens.
+                - 'first': Use the first occurrence probability (default)
+                - 'max': Use the maximum probability across occurrences
+                - 'mean': Use the average probability across occurrences
+                - 'all': Return all occurrences as a list
+            skip_thinking (bool): If True, only consider tokens after the '</think>' 
+                closing tag for Chain-of-Thought (CoT) models. This filters out the 
+                reasoning process tokens and focuses on the final answer tokens.
+                Uses response.crop_thinking() internally. Defaults to False.
         
         Returns:
             Dict[str, float]: Dictionary mapping tokens to their probabilities.
+                If aggregate='all', values are lists of floats.
+        
+        Raises:
+            ValueError: If response doesn't contain token probabilities or
+                invalid aggregate method is specified.
+        
+        Example:
+            >>> # Standard usage
+            >>> response = client.chat("Hello", return_token_probs=True)
+            >>> probs = client.get_token_probabilities(response)
+            >>> print(probs)  # {'Hello': 0.95, '!': 0.87, ...}
+            
+            >>> # For thinking models (CoT) - Method 1: use skip_thinking
+            >>> response = client.chat("What is 2+2?", return_token_probs=True)
+            >>> probs = client.get_token_probabilities(response, skip_thinking=True)
+            >>> print(probs)  # Only tokens after </think>: {'4': 0.92, ...}
+            
+            >>> # For thinking models (CoT) - Method 2: crop first
+            >>> cropped = response.crop_thinking()
+            >>> probs = client.get_token_probabilities(cropped)
         """
-        if not self._is_initialized:
-            raise RuntimeError("Model not initialized. Call _load_model() first.")
+        # Use crop_thinking() if skip_thinking is True
+        if skip_thinking:
+            response = response.crop_thinking()
+            if "thinking_tokens_removed" in response.metadata:
+                removed_count = response.metadata["thinking_tokens_removed"]
+                logger.info(f"Cropped {removed_count} thinking tokens from response")
         
-        inputs = self._tokenizer(prompt, return_tensors="pt").to(self._model.device)
+        if "token_probabilities" not in response.metadata:
+            raise ValueError(
+                "Response does not contain token probabilities. "
+                "Generate response with return_token_probs=True parameter."
+            )
         
-        with torch.no_grad():
-            outputs = self._model(**inputs)
-            next_token_logits = outputs.logits[0, -1, :]
-            next_token_probs = F.softmax(next_token_logits, dim=-1)
+        token_probs = response.metadata["token_probabilities"]
         
-        result = {}
+        if aggregate == "all":
+            # Return all occurrences
+            result = {}
+            for item in token_probs:
+                token = item["token"]
+                prob = item["probability"]
+                if token not in result:
+                    result[token] = []
+                result[token].append(prob)
+            return result
         
-        if target_tokens:
-            # Get probabilities for specific tokens
-            for token in target_tokens:
-                token_ids = self._tokenizer.encode(token, add_special_tokens=False)
-                total_prob = sum(
-                    next_token_probs[tid].item()
-                    for tid in token_ids
-                    if tid < len(next_token_probs)
-                )
-                result[token] = total_prob
+        elif aggregate == "first":
+            # Use first occurrence
+            result = {}
+            for item in token_probs:
+                token = item["token"]
+                if token not in result:
+                    result[token] = item["probability"]
+            return result
+        
+        elif aggregate == "max":
+            # Use maximum probability
+            result = {}
+            for item in token_probs:
+                token = item["token"]
+                prob = item["probability"]
+                if token not in result or prob > result[token]:
+                    result[token] = prob
+            return result
+        
+        elif aggregate == "mean":
+            # Use average probability
+            token_lists = {}
+            for item in token_probs:
+                token = item["token"]
+                prob = item["probability"]
+                if token not in token_lists:
+                    token_lists[token] = []
+                token_lists[token].append(prob)
+            
+            result = {
+                token: sum(probs) / len(probs)
+                for token, probs in token_lists.items()
+            }
+            return result
+        
         else:
-            # Get top_k tokens
-            probs, indices = torch.topk(next_token_probs, top_k)
-            for prob, idx in zip(probs, indices):
-                token_str = self._tokenizer.decode([idx.item()])
-                result[token_str.strip()] = prob.item()
-        
-        return result
+            raise ValueError(
+                f"Invalid aggregate method: {aggregate}. "
+                "Must be 'first', 'max', 'mean', or 'all'."
+            )
     
     def unload_model(self) -> None:
         """Unload the model from memory to free up resources."""

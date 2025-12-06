@@ -38,8 +38,8 @@ def main():
     )
     print(f"Response: {response.content}")
     
-    # Multi-turn conversation
-    print("\n--- Multi-turn Conversation ---")
+    # Multi-turn conversation (manual history management)
+    print("\n--- Multi-turn Conversation (Manual) ---")
     messages = [
         ChatMessage(role="system", content="You are a helpful math tutor."),
         ChatMessage(role="user", content="What is 15% of 200?"),
@@ -48,6 +48,25 @@ def main():
     ]
     response = client.chat_with_history(messages)
     print(f"Response: {response.content}")
+    
+    # Multi-turn conversation (automatic history management)
+    print("\n--- Multi-turn Conversation (Automatic) ---")
+    conv = client.start_conversation(
+        system_prompt="You are a helpful coding assistant.",
+        max_history=20  # Keep last 20 messages
+    )
+    
+    response = conv.send("What is a Python list?")
+    print(f"Turn 1: {response.content[:100]}...")
+    
+    response = conv.send("How do I append to it?")
+    print(f"Turn 2: {response.content[:100]}...")
+    
+    response = conv.send("Show me an example.")
+    print(f"Turn 3: {response.content[:100]}...")
+    
+    print(f"\nConversation has {conv.get_message_count()} messages")
+    print(f"Estimated tokens: {conv.get_token_estimate()}")
     
     # Access response metadata
     print(f"\nToken usage: {response.metadata.get('usage', 'N/A')}")

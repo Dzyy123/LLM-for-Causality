@@ -291,8 +291,9 @@ def test_local_client_token_probabilities() -> bool:
             load_on_init=True
         )
         
-        # Get token probabilities
-        probs = client.get_token_probabilities("The sky is", top_k=5)
+        # Generate response with token probabilities
+        response = client.chat("The sky is", return_token_probs=True, max_tokens=10)
+        probs = client.get_token_probabilities(response)
         
         assert probs is not None, "Probabilities should not be None"
         assert isinstance(probs, dict), "Probabilities should be a dictionary"

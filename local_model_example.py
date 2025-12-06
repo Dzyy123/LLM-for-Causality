@@ -24,7 +24,7 @@ def main():
         local_path=LOCAL_PATH,
         mirror_url=MIRROR_URL,
         device=DEVICE,
-        max_tokens=200
+        max_tokens=4000,
     )
     
     # Simple chat
@@ -42,14 +42,24 @@ def main():
     
     # Get token probabilities (useful for causality judgment)
     print("\n--- Token Probabilities ---")
-    probs = client.get_token_probabilities(
+    response = client.chat(
         "Is the sky blue? Answer yes or no:",
-        target_tokens=["yes", "no", "Yes", "No"]
+        return_token_probs=True  # Enable probability tracking
     )
-    print(f"Token probabilities: {probs}")
+    print(f"Response: {response.content}")
     
-    # Multi-turn conversation
-    print("\n--- Multi-turn Conversation ---")
+    # Method 1: Skip thinking tokens directly
+    probs = client.get_token_probabilities(response, skip_thinking=True)
+    print(f"Token probabilities (skip_thinking=True): {probs}")
+    
+    # Method 2: Crop thinking first, then get probabilities
+    cropped = response.crop_thinking()
+    print(f"Cropped response: {cropped.content}")
+    probs = client.get_token_probabilities(cropped)
+    print(f"Token probabilities (after crop): {probs}")
+    
+    # Multi-turn conversation (manual history management)
+    print("\n--- Multi-turn Conversation (Manual) ---")
     from llm_utils import ChatMessage
     messages = [
         ChatMessage(role="system", content="You are a helpful math tutor."),
@@ -59,6 +69,24 @@ def main():
     ]
     response = client.chat_with_history(messages)
     print(f"Response: {response.content}")
+    
+    # Multi-turn conversation (automatic history management)
+    print("\n--- Multi-turn Conversation (Automatic) ---")
+    conv = client.start_conversation(
+        system_prompt="You are a helpful math tutor.",
+        max_history=10  # Keep last 10 messages
+    )
+    
+    response = conv.send("What is 20% of 150?")
+    print(f"Turn 1: {response.content}")
+    
+    response = conv.send("What about 25% of the same number?")
+    print(f"Turn 2: {response.content}")
+    
+    response = conv.send("Which one is larger?")
+    print(f"Turn 3: {response.content}")
+    
+    print(f"Conversation has {conv.get_message_count()} messages")
     
     # Clean up
     client.unload_model()

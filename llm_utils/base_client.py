@@ -6,11 +6,14 @@ for all LLM clients.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 import math
 import re
 
 from llm_utils.data_types import LLMResponse, ChatMessage
+
+if TYPE_CHECKING:
+    from llm_utils.conversation import Conversation
 
 
 class BaseLLMClient(ABC):
@@ -99,6 +102,35 @@ class BaseLLMClient(ABC):
             Dict[str, float]: Dictionary mapping tokens to their probabilities.
         """
         pass
+    
+    def start_conversation(
+        self,
+        system_prompt: Optional[str] = None,
+        max_history: Optional[int] = None
+    ) -> "Conversation":
+        """Start a new conversation with automatic history management.
+        
+        This method creates a Conversation object that automatically tracks
+        message history and provides convenient methods for multi-turn dialogues.
+        
+        Args:
+            system_prompt (Optional[str]): Optional system prompt to set context.
+            max_history (Optional[int]): Maximum number of messages to keep in history.
+                If None, keeps all messages. If set, older messages (excluding
+                system message) are removed when limit is reached.
+        
+        Returns:
+            Conversation: A new conversation manager instance.
+        
+        Example:
+            >>> client = LocalLLMClient(...)
+            >>> conv = client.start_conversation(system_prompt="You are helpful.")
+            >>> response = conv.send("What is 2+2?")
+            >>> response = conv.send("What is that squared?")  # Uses context
+            >>> print(conv.get_history())  # Inspect full conversation
+        """
+        from llm_utils.conversation import Conversation
+        return Conversation(self, system_prompt=system_prompt, max_history=max_history)
     
     def judge_binary(
         self,

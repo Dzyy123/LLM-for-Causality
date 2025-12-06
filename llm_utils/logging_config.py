@@ -20,15 +20,24 @@ from typing import Optional
 # Package-level logger name
 LOGGER_NAME = "llm_utils"
 
-# Default logging format
-DEFAULT_FORMAT = "[%(levelname)s] %(name)s - %(message)s"
-DETAILED_FORMAT = "%(asctime)s [%(levelname)s] %(name)s - %(message)s"
+# Default logging formats
+# Concise format with date and time: MM-DD HH:MM:SS
+DEFAULT_FORMAT = "%(asctime)s [%(levelname)s] %(name)s - %(message)s"
+# Detailed format with full timestamp
+DETAILED_FORMAT = "%(asctime)s [%(levelname)s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+# Simple format without timestamp (for cases where timestamps aren't needed)
+SIMPLE_FORMAT = "[%(levelname)s] %(name)s - %(message)s"
+
+# Default date format: concise month-day hour:minute:second
+DEFAULT_DATE_FORMAT = "%m-%d %H:%M:%S"
 
 
 def setup_logging(
     level: str = "INFO",
     format_string: Optional[str] = None,
+    date_format: Optional[str] = None,
     use_detailed_format: bool = False,
+    no_timestamps: bool = False,
     stream: Optional[object] = None
 ) -> logging.Logger:
     """Set up logging configuration for the llm_utils package.
@@ -40,9 +49,14 @@ def setup_logging(
         level (str): Logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 
             'CRITICAL'). Defaults to 'INFO'.
         format_string (Optional[str]): Custom format string for log messages.
-            If None, uses default format.
+            If None, uses default format with timestamps.
+        date_format (Optional[str]): Custom date format string. Defaults to
+            "%m-%d %H:%M:%S" (e.g., "12-06 14:30:45").
         use_detailed_format (bool): If True and format_string is None, uses
-            a more detailed format with timestamps. Defaults to False.
+            a detailed format with function names and line numbers. 
+            Defaults to False.
+        no_timestamps (bool): If True and format_string is None, uses
+            a simple format without timestamps. Defaults to False.
         stream (Optional[object]): Stream to output logs to. Defaults to
             sys.stdout.
     
@@ -50,16 +64,21 @@ def setup_logging(
         logging.Logger: The configured logger instance.
     
     Example:
-        >>> # Basic setup
+        >>> # Basic setup with timestamps (default)
         >>> logger = setup_logging()
+        >>> # Output: 12-06 14:30:45 [INFO] llm_utils - Message
         
-        >>> # Debug level with timestamps
+        >>> # Debug level with detailed format
         >>> logger = setup_logging(level="DEBUG", use_detailed_format=True)
+        >>> # Output: 12-06 14:30:45 [DEBUG] llm_utils.module:func:42 - Message
         
-        >>> # Custom format
-        >>> logger = setup_logging(
-        ...     format_string="%(asctime)s - %(levelname)s - %(message)s"
-        ... )
+        >>> # Simple format without timestamps
+        >>> logger = setup_logging(no_timestamps=True)
+        >>> # Output: [INFO] llm_utils - Message
+        
+        >>> # Custom date format with full year
+        >>> logger = setup_logging(date_format="%Y-%m-%d %H:%M:%S")
+        >>> # Output: 2025-12-06 14:30:45 [INFO] llm_utils - Message
     """
     # Get or create the package logger
     logger = logging.getLogger(LOGGER_NAME)
@@ -73,10 +92,19 @@ def setup_logging(
     
     # Determine format string
     if format_string is None:
-        format_string = DETAILED_FORMAT if use_detailed_format else DEFAULT_FORMAT
+        if no_timestamps:
+            format_string = SIMPLE_FORMAT
+        elif use_detailed_format:
+            format_string = DETAILED_FORMAT
+        else:
+            format_string = DEFAULT_FORMAT
+    
+    # Determine date format
+    if date_format is None:
+        date_format = DEFAULT_DATE_FORMAT
     
     # Create formatter
-    formatter = logging.Formatter(format_string)
+    formatter = logging.Formatter(format_string, datefmt=date_format)
     
     # Create stream handler
     handler = logging.StreamHandler(stream or sys.stdout)
@@ -105,7 +133,7 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     Example:
         >>> logger = get_logger("online_client")
         >>> logger.info("Client initialized")
-        [INFO] llm_utils.online_client - Client initialized
+        12-06 14:30:45 [INFO] llm_utils.online_client - Client initialized
     """
     if name:
         return logging.getLogger(f"{LOGGER_NAME}.{name}")
