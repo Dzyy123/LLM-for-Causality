@@ -364,24 +364,40 @@ class LocalLLMClient(BaseLLMClient):
             generated_tokens = outputs.sequences[0][input_length:]
             content = self._tokenizer.decode(generated_tokens, skip_special_tokens=True)
             
-            # Extract token probabilities
+            # Extract token probabilities and distributions
             token_probs = []
+            token_distributions = []
+            
             for i, score in enumerate(outputs.scores):
                 probs = F.softmax(score[0], dim=-1)
                 token_id = generated_tokens[i].item()
                 token_str = self._tokenizer.decode([token_id])
                 token_prob = probs[token_id].item()
+                
+                # Store the actual generated token probability
                 token_probs.append({
                     "token": token_str,
                     "token_id": token_id,
                     "probability": token_prob
                 })
+                
+                # Store full distribution (top-k will be extracted later)
+                # Convert to CPU and numpy for efficiency
+                probs_cpu = probs.cpu().numpy()
+                # Get top 100 to have enough for any reasonable top_k request
+                top_indices = probs_cpu.argsort()[-100:][::-1]
+                top_probs = {
+                    self._tokenizer.decode([int(idx)]): float(probs_cpu[idx])
+                    for idx in top_indices
+                }
+                token_distributions.append(top_probs)
             
             metadata = {
                 "model": self.model_id,
                 "input_tokens": input_length,
                 "output_tokens": len(generated_tokens),
-                "token_probabilities": token_probs
+                "token_probabilities": token_probs,
+                "token_distributions": token_distributions
             }
         else:
             # Standard generation without probabilities
@@ -523,6 +539,102 @@ class LocalLLMClient(BaseLLMClient):
                 f"Invalid aggregate method: {aggregate}. "
                 "Must be 'first', 'max', 'mean', or 'all'."
             )
+    
+    def get_token_distributions(
+        self,
+        response: LLMResponse,
+        top_k: int = 20,
+        skip_zeros: bool = False,
+        zero_threshold: float = 1e-10,
+        skip_thinking: bool = False
+    ) -> List[Dict[str, float]]:
+        """Get the top-k token probability distribution at each position.
+        
+        This method returns a list where each element is a dictionary containing
+        the top-k most likely tokens and their probabilities at that position in
+        the generated sequence.
+        
+        Args:
+            response (LLMResponse): The response object containing token probabilities.
+                Must have 'token_probabilities' in metadata.
+            top_k (int): Number of top tokens to return for each position.
+                Defaults to 20.
+            skip_zeros (bool): If True, skip tokens with probabilities below the
+                zero_threshold. Defaults to False.
+            zero_threshold (float): Threshold below which tokens are considered
+                "zero" and skipped if skip_zeros is True. Defaults to 1e-10.
+            skip_thinking (bool): If True, only consider tokens after the '</think>' 
+                closing tag for Chain-of-Thought (CoT) models. Uses 
+                response.crop_thinking() internally. Defaults to False.
+        
+        Returns:
+            List[Dict[str, float]]: A list of dictionaries, where the n-th dictionary
+                contains the top-k tokens and their probabilities at position n.
+                Each dict maps token strings to their probabilities, sorted by
+                probability in descending order.
+        
+        Raises:
+            ValueError: If response doesn't contain token probabilities.
+        
+        Example:
+            >>> response = client.chat("Hello", return_token_probs=True)
+            >>> dist = client.get_token_distributions(response, top_k=5)
+            >>> print(dist[0])  # First position top-5
+            {'Hello': 0.95, 'Hi': 0.03, 'Hey': 0.01, 'Greetings': 0.005, 'Good': 0.003}
+            >>> print(dist[1])  # Second position top-5
+            {'!': 0.87, ',': 0.08, '.': 0.03, ' there': 0.01, '?': 0.005}
+            
+            >>> # Skip near-zero probabilities
+            >>> dist = client.get_token_distributions(
+            ...     response, top_k=10, skip_zeros=True, zero_threshold=0.001
+            ... )
+            >>> # Only returns tokens with prob >= 0.001
+            
+            >>> # For thinking models
+            >>> response = client.chat("What is 2+2?", return_token_probs=True)
+            >>> dist = client.get_token_distributions(response, top_k=10, skip_thinking=True)
+            >>> # Only returns distribution after </think> tag
+        """
+        # Use crop_thinking() if skip_thinking is True
+        if skip_thinking:
+            response = response.crop_thinking()
+            if "thinking_tokens_removed" in response.metadata:
+                removed_count = response.metadata["thinking_tokens_removed"]
+                logger.info(f"Cropped {removed_count} thinking tokens from response")
+        
+        if "token_probabilities" not in response.metadata:
+            raise ValueError(
+                "Response does not contain token probabilities. "
+                "Generate response with return_token_probs=True parameter."
+            )
+        
+        # Check if we have full distributions
+        if "token_distributions" not in response.metadata:
+            raise ValueError(
+                "Token distributions not available. This should not happen with "
+                "return_token_probs=True. Please regenerate the response."
+            )
+        
+        distributions = response.metadata["token_distributions"]
+        result = []
+        
+        for dist in distributions:
+            # Filter out near-zero probabilities if requested
+            if skip_zeros:
+                filtered_dist = {
+                    token: prob 
+                    for token, prob in dist.items() 
+                    if prob >= zero_threshold
+                }
+            else:
+                filtered_dist = dist
+            
+            # Sort by probability and take top_k
+            sorted_items = sorted(filtered_dist.items(), key=lambda x: x[1], reverse=True)
+            top_tokens = dict(sorted_items[:top_k])
+            result.append(top_tokens)
+        
+        return result
     
     def unload_model(self) -> None:
         """Unload the model from memory to free up resources."""

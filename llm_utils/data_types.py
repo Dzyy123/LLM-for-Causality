@@ -96,6 +96,12 @@ class LLMResponse:
                 cropped_metadata["token_probabilities"] = cropped_token_probs
                 cropped_metadata["thinking_tokens_removed"] = think_end_idx
                 
+                # Also crop token_distributions if present
+                if "token_distributions" in self.metadata:
+                    token_dists = self.metadata["token_distributions"]
+                    cropped_token_dists = token_dists[think_end_idx:]
+                    cropped_metadata["token_distributions"] = cropped_token_dists
+                
                 # Update output_tokens count if present
                 if "output_tokens" in cropped_metadata:
                     original_count = cropped_metadata["output_tokens"]

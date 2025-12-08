@@ -58,6 +58,58 @@ def main():
     probs = client.get_token_probabilities(cropped)
     print(f"Token probabilities (after crop): {probs}")
     
+    # Get token distribution at each position
+    print("\n--- Token Distribution (Top-K) ---")
+    dist = client.get_token_distributions(response, top_k=5, skip_thinking=True)
+    print(f"Number of positions: {len(dist)}")
+    if len(dist) > 0:
+        print(f"Position 0 (first token) top-5: {dist[0]}")
+    if len(dist) > 1:
+        print(f"Position 1 (second token) top-5: {dist[1]}")
+    if len(dist) > 2:
+        print(f"Position 2 (third token) top-5: {dist[2]}")
+    
+    # Get token distribution with zero filtering
+    print("\n--- Token Distribution (Skip Zeros) ---")
+    dist_filtered = client.get_token_distributions(
+        response, 
+        top_k=10, 
+        skip_zeros=True, 
+        zero_threshold=0.001,  # Skip tokens with prob < 0.001
+        skip_thinking=True
+    )
+    print(f"Number of positions: {len(dist_filtered)}")
+    if len(dist_filtered) > 0:
+        print(f"Position 0 (filtered, prob >= 0.001): {dist_filtered[0]}")
+        print(f"  Number of tokens: {len(dist_filtered[0])}")
+    
+    # Analyze token distribution for causality judgment
+    print("\n--- Token Distribution for Causality ---")
+    response = client.chat(
+        "Is there a causal relationship between smoking and lung cancer? Answer yes or no.",
+        system_prompt="You are a medical expert. Answer concisely.",
+        return_token_probs=True
+    )
+    cropped = response.crop_thinking()
+    print(f"Answer: {cropped.content}")
+    
+    # Get distribution without filtering
+    dist_all = client.get_token_distributions(cropped, top_k=10)
+    if len(dist_all) > 0:
+        print(f"\nFirst token distribution (top-10, all tokens):")
+        for token, prob in list(dist_all[0].items())[:10]:
+            print(f"  '{token}': {prob:.4f}")
+    
+    # Get distribution with zero filtering
+    dist_significant = client.get_token_distributions(
+        cropped, top_k=10, skip_zeros=True, zero_threshold=0.01
+    )
+    if len(dist_significant) > 0:
+        print(f"\nFirst token distribution (top-10, prob >= 0.01):")
+        for token, prob in list(dist_significant[0].items()):
+            print(f"  '{token}': {prob:.4f}")
+
+    
     # Multi-turn conversation (manual history management)
     print("\n--- Multi-turn Conversation (Manual) ---")
     from llm_utils import ChatMessage
