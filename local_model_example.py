@@ -43,7 +43,7 @@ def main():
     # Get token probabilities (useful for causality judgment)
     print("\n--- Token Probabilities ---")
     response = client.chat(
-        "Is the sky blue? Answer yes or no:",
+        "What is the capital of Burkina Faso? Answer in one word.",
         return_token_probs=True  # Enable probability tracking
     )
     print(f"Response: {response.content}")

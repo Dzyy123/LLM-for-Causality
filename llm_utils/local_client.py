@@ -10,6 +10,7 @@ import os
 
 import torch
 import torch.nn.functional as F
+from transformers import LogitsProcessorList, TemperatureLogitsWarper
 
 from llm_utils.logging_config import get_logger
 from llm_utils.base_client import BaseLLMClient
@@ -349,48 +350,69 @@ class LocalLLMClient(BaseLLMClient):
         input_length = inputs.input_ids.shape[1]
         
         if return_token_probs:
-            # Generate with output_scores to get token probabilities
-            with torch.no_grad():
-                outputs = self._model.generate(
-                    **inputs,
-                    max_new_tokens=max_tokens,
-                    temperature=temperature if temperature > 0 else None,
-                    do_sample=temperature > 0,
-                    pad_token_id=self._tokenizer.eos_token_id,
-                    output_scores=True,
-                    return_dict_in_generate=True
-                )
+            # Initialize logits processors
+            logits_processor = LogitsProcessorList()
+            if temperature > 0 and temperature != 1.0:
+                logits_processor.append(TemperatureLogitsWarper(temperature))
             
-            generated_tokens = outputs.sequences[0][input_length:]
-            content = self._tokenizer.decode(generated_tokens, skip_special_tokens=True)
-            
-            # Extract token probabilities and distributions
+            # Manual generation loop
+            generated_tokens = []
             token_probs = []
             token_distributions = []
             
-            for i, score in enumerate(outputs.scores):
-                probs = F.softmax(score[0], dim=-1)
-                token_id = generated_tokens[i].item()
-                token_str = self._tokenizer.decode([token_id])
-                token_prob = probs[token_id].item()
-                
-                # Store the actual generated token probability
-                token_probs.append({
-                    "token": token_str,
-                    "token_id": token_id,
-                    "probability": token_prob
-                })
-                
-                # Store full distribution (top-k will be extracted later)
-                # Convert to CPU and numpy for efficiency
-                probs_cpu = probs.cpu().numpy()
-                # Get top 100 to have enough for any reasonable top_k request
-                top_indices = probs_cpu.argsort()[-100:][::-1]
-                top_probs = {
-                    self._tokenizer.decode([int(idx)]): float(probs_cpu[idx])
-                    for idx in top_indices
-                }
-                token_distributions.append(top_probs)
+            current_input_ids = inputs.input_ids
+            
+            with torch.no_grad():
+                for _ in range(max_tokens):
+                    # Use manual generation loop to capture raw logits before sampling
+                    
+                    # Forward pass to get logits
+                    outputs = self._model(current_input_ids)
+                    next_token_logits = outputs.logits[:, -1, :]
+                    
+                    # Apply logits processors (temperature, etc.)
+                    next_token_logits = logits_processor(current_input_ids, next_token_logits)
+                    
+                    # Calculate soft probabilities BEFORE sampling
+                    probs = F.softmax(next_token_logits[0], dim=-1)
+                    
+                    # Sample next token
+                    if temperature > 0:
+                        next_token_id = torch.multinomial(probs, num_samples=1)
+                    else:
+                        next_token_id = torch.argmax(probs, dim=-1, keepdim=True)
+                    
+                    next_token_id_value = next_token_id.item()
+                    
+                    # Check for EOS token
+                    if next_token_id_value == self._tokenizer.eos_token_id:
+                        break
+                    
+                    generated_tokens.append(next_token_id_value)
+                    
+                    # Store token probability
+                    token_str = self._tokenizer.decode([next_token_id_value])
+                    token_prob = probs[next_token_id_value].item()
+                    
+                    token_probs.append({
+                        "token": token_str,
+                        "token_id": next_token_id_value,
+                        "probability": token_prob
+                    })
+                    
+                    # Store full distribution (top-100 for efficiency)
+                    probs_cpu = probs.cpu().numpy()
+                    top_indices = probs_cpu.argsort()[-100:][::-1]
+                    top_probs = {
+                        self._tokenizer.decode([int(idx)]): float(probs_cpu[idx])
+                        for idx in top_indices
+                    }
+                    token_distributions.append(top_probs)
+                    
+                    # Append token to input for next iteration
+                    current_input_ids = torch.cat([current_input_ids, next_token_id.unsqueeze(0)], dim=-1)
+            
+            content = self._tokenizer.decode(generated_tokens, skip_special_tokens=True)
             
             metadata = {
                 "model": self.model_id,
@@ -421,7 +443,7 @@ class LocalLLMClient(BaseLLMClient):
         
         return LLMResponse(
             content=content.strip(),
-            raw_response=outputs,
+            raw_response=generated_tokens if return_token_probs else outputs,
             metadata=metadata
         )
     
