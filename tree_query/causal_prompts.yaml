@@ -143,12 +143,12 @@ prompts:
   causal_direction_after_blocking: |
     Consider all variables in the system: {all_variables}
 
-    Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, does {x1} directly cause {x2}?
+    Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, does {x1} cause {x2}?
 
     Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
 
   causal_direction: |
-    Question: Does {x1} directly cause {x2}?
+    Question: Does {x1} cause {x2}?
 
     Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
 
