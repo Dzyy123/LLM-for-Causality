@@ -127,6 +127,9 @@ class OnlineLLMClient(BaseLLMClient):
         self,
         prompt: str,
         system_prompt: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        seed: Optional[int] = None,
         **kwargs
     ) -> LLMResponse:
         """Send a chat message and get a response.
@@ -134,7 +137,11 @@ class OnlineLLMClient(BaseLLMClient):
         Args:
             prompt (str): The user's input prompt.
             system_prompt (Optional[str]): Optional system prompt to set context.
-            **kwargs: Additional parameters (temperature, max_tokens, etc.).
+            temperature (Optional[float]): Sampling temperature. If None, uses instance default.
+            max_tokens (Optional[int]): Maximum tokens to generate. If None, uses instance default.
+            seed (Optional[int]): Random seed for reproducible generation (supported by
+                OpenAI and compatible APIs).
+            **kwargs: Additional parameters.
         
         Returns:
             LLMResponse: Standardized LLM response object.
@@ -144,15 +151,22 @@ class OnlineLLMClient(BaseLLMClient):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
         
-        temperature = kwargs.get("temperature", self.temperature)
-        max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        temperature = temperature if temperature is not None else self.temperature
+        max_tokens = max_tokens if max_tokens is not None else self.max_tokens
         
-        response = self._client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
+        # Build API call parameters
+        api_params = {
+            "model": self.model_name,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature
+        }
+        
+        # Add seed if provided (supported by OpenAI and compatible APIs)
+        if seed is not None:
+            api_params["seed"] = seed
+        
+        response = self._client.chat.completions.create(**api_params)
         
         content = response.choices[0].message.content.strip()
         
@@ -174,6 +188,9 @@ class OnlineLLMClient(BaseLLMClient):
     def chat_with_history(
         self,
         messages: List[ChatMessage],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        seed: Optional[int] = None,
         **kwargs
     ) -> LLMResponse:
         """Send a conversation with history and get a response.
@@ -181,22 +198,33 @@ class OnlineLLMClient(BaseLLMClient):
         Args:
             messages (List[ChatMessage]): List of chat messages representing
                 the conversation.
-            **kwargs: Additional parameters (temperature, max_tokens, etc.).
+            temperature (Optional[float]): Sampling temperature. If None, uses instance default.
+            max_tokens (Optional[int]): Maximum tokens to generate. If None, uses instance default.
+            seed (Optional[int]): Random seed for reproducible generation (supported by
+                OpenAI and compatible APIs).
+            **kwargs: Additional parameters.
         
         Returns:
             LLMResponse: Standardized LLM response object.
         """
-        temperature = kwargs.get("temperature", self.temperature)
-        max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        temperature = temperature if temperature is not None else self.temperature
+        max_tokens = max_tokens if max_tokens is not None else self.max_tokens
         
         formatted_messages = [msg.to_dict() for msg in messages]
         
-        response = self._client.chat.completions.create(
-            model=self.model_name,
-            messages=formatted_messages,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
+        # Build API call parameters
+        api_params = {
+            "model": self.model_name,
+            "messages": formatted_messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature
+        }
+        
+        # Add seed if provided (supported by OpenAI and compatible APIs)
+        if seed is not None:
+            api_params["seed"] = seed
+        
+        response = self._client.chat.completions.create(**api_params)
         
         content = response.choices[0].message.content.strip()
         

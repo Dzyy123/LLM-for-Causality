@@ -40,10 +40,10 @@ def setup_logging(
     no_timestamps: bool = False,
     stream: Optional[object] = None
 ) -> logging.Logger:
-    """Set up logging configuration for the llm_utils package.
+    """Set up logging configuration for the entire application.
     
-    This function configures logging for the entire llm_utils package.
-    It should be called once at the start of your application.
+    This function configures logging for ALL modules in the application,
+    not just llm_utils. It should be called once at the start of your application.
     
     Args:
         level (str): Logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 
@@ -61,34 +61,34 @@ def setup_logging(
             sys.stdout.
     
     Returns:
-        logging.Logger: The configured logger instance.
+        logging.Logger: The configured root logger instance.
     
     Example:
         >>> # Basic setup with timestamps (default)
         >>> logger = setup_logging()
-        >>> # Output: 12-06 14:30:45 [INFO] llm_utils - Message
+        >>> # Output: 12-06 14:30:45 [INFO] module_name - Message
         
         >>> # Debug level with detailed format
         >>> logger = setup_logging(level="DEBUG", use_detailed_format=True)
-        >>> # Output: 12-06 14:30:45 [DEBUG] llm_utils.module:func:42 - Message
+        >>> # Output: 12-06 14:30:45 [DEBUG] module_name:func:42 - Message
         
         >>> # Simple format without timestamps
         >>> logger = setup_logging(no_timestamps=True)
-        >>> # Output: [INFO] llm_utils - Message
+        >>> # Output: [INFO] module_name - Message
         
         >>> # Custom date format with full year
         >>> logger = setup_logging(date_format="%Y-%m-%d %H:%M:%S")
-        >>> # Output: 2025-12-06 14:30:45 [INFO] llm_utils - Message
+        >>> # Output: 2025-12-06 14:30:45 [INFO] module_name - Message
     """
-    # Get or create the package logger
-    logger = logging.getLogger(LOGGER_NAME)
+    # Get the root logger to configure ALL modules
+    root_logger = logging.getLogger()
     
-    # Clear any existing handlers
-    logger.handlers.clear()
+    # Clear any existing handlers from root logger
+    root_logger.handlers.clear()
     
-    # Set the logging level
+    # Set the logging level on root logger
     log_level = getattr(logging, level.upper(), logging.INFO)
-    logger.setLevel(log_level)
+    root_logger.setLevel(log_level)
     
     # Determine format string
     if format_string is None:
@@ -111,17 +111,28 @@ def setup_logging(
     handler.setLevel(log_level)
     handler.setFormatter(formatter)
     
-    # Add handler to logger
-    logger.addHandler(handler)
+    # Add handler to root logger (applies to all modules)
+    root_logger.addHandler(handler)
     
-    # Prevent propagation to root logger to avoid duplicate messages
-    logger.propagate = False
+    # Also configure the package logger for backward compatibility
+    package_logger = logging.getLogger(LOGGER_NAME)
+    package_logger.setLevel(log_level)
+    # Package logger will inherit the root logger's handler
+    package_logger.propagate = True
     
-    return logger
+    # Set httpx and httpcore loggers to WARNING to reduce noise
+    # These libraries log HTTP requests at INFO level by default
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    
+    return root_logger
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Get a logger instance for a specific module.
+    
+    This returns a properly configured logger that inherits settings from
+    the root logger configured by setup_logging().
     
     Args:
         name (Optional[str]): Module name to append to the package logger name.
