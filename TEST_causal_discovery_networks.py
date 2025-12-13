@@ -512,10 +512,10 @@ def main():
     setup_logging(level="INFO", date_format='%H:%M:%S')
     
     # Create markdown folder if it doesn't exist
-    markdown_folder = Path("markdown")
+    markdown_folder = Path("running_reports")
     markdown_folder.mkdir(exist_ok=True)
     
-    # Create report file in markdown folder
+    # Create report file in running_reports folder
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     report_filename = markdown_folder / f"causal_discovery_report_{timestamp}.md"
     writer = CausalDiscoveryReportWriter(str(report_filename))
