@@ -372,7 +372,8 @@ class MetricsCalculator:
         return max(0.0, confidence)
     
     def calculate_all_metrics(self, expert_result: int,
-                             distracted_samples: List[DistractedSample]) -> Dict[str, Any]:
+                             distracted_samples: List[DistractedSample],
+                             original_answers: List[OriginalAnswer]) -> Dict[str, Any]:
         """Calculate all confidence metrics."""
         # Build detailed tracking: group by set_index to show each original answer's journey
         detailed_tracking = {}
@@ -401,8 +402,19 @@ class MetricsCalculator:
             # Label distribution
             label_distributions[dtype] = self.compute_label_distribution([s.label for s in type_samples])
         
-        # Calculate probabilities
-        p0 = 1.0
+        # Calculate p0: proportion of majority label in original answers
+        # Count labels in original answers
+        original_labels = [ans.label for ans in original_answers]
+        yes_count = sum(1 for label in original_labels if label == 1)
+        no_count = len(original_labels) - yes_count
+        
+        # p0 is the proportion of the majority label (range: [0.5, 1])
+        p0_raw = max(yes_count, no_count) / len(original_labels) if original_labels else 1.0
+        
+        # Apply adjustment: p0 = p0 * 2 - 1 to map [0.5, 1] -> [0, 1]
+        p0 = p0_raw * 2 - 1
+        
+        # Calculate other probabilities
         p1 = 1 - flip_rates['contrarian']
         p2 = 1 - flip_rates['deceiver']
         p3 = 1 - flip_rates['hater']
@@ -420,6 +432,7 @@ class MetricsCalculator:
             'detailed_tracking': detailed_tracking,
             'avg_flip_rate': avg_flip_rate,
             'robustness_score': robustness_score,
+            'p0_raw': p0_raw,
             'p0': p0,
             'p1': p1,
             'p2': p2,
@@ -507,7 +520,7 @@ class DistractorConfidenceEstimator:
         # Step 4: Calculate metrics
         logger.info("Calculating metrics")
         metrics = self.metrics_calculator.calculate_all_metrics(
-            result, distracted_samples
+            result, distracted_samples, original_answers
         )
         
         logger.info(f"Confidence: {metrics['confidence_score']:.4f}, Robustness: {metrics['robustness_score']:.2%}")
