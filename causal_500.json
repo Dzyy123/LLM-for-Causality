@@ -1,0 +1,2583 @@
+[
+    {
+        "element1": "high-salt diet",
+        "element2": "hypertension",
+        "causal": 1
+    },
+    {
+        "element1": "long-term smoking",
+        "element2": "lung cancer",
+        "causal": 1
+    },
+    {
+        "element1": "heavy drinking",
+        "element2": "liver cirrhosis",
+        "causal": 1
+    },
+    {
+        "element1": "iodine deficiency",
+        "element2": "goiter",
+        "causal": 1
+    },
+    {
+        "element1": "high-cholesterol diet",
+        "element2": "atherosclerosis",
+        "causal": 1
+    },
+    {
+        "element1": "long-term staying up late",
+        "element2": "neurasthenia",
+        "causal": 1
+    },
+    {
+        "element1": "formaldehyde exceeding standards",
+        "element2": "respiratory diseases",
+        "causal": 1
+    },
+    {
+        "element1": "speeding",
+        "element2": "traffic accidents",
+        "causal": 1
+    },
+    {
+        "element1": "pesticide exceeding standards",
+        "element2": "food poisoning",
+        "causal": 1
+    },
+    {
+        "element1": "long-term sitting",
+        "element2": "lumbar disc herniation",
+        "causal": 1
+    },
+    {
+        "element1": "hypoglycemia",
+        "element2": "dizziness",
+        "causal": 1
+    },
+    {
+        "element1": "electric shock",
+        "element2": "cardiac arrest",
+        "causal": 1
+    },
+    {
+        "element1": "sunburn",
+        "element2": "sun exposure",
+        "causal": 1
+    },
+    {
+        "element1": "excessive stress",
+        "element2": "insomnia",
+        "causal": 1
+    },
+    {
+        "element1": "binge eating",
+        "element2": "acute gastroenteritis",
+        "causal": 1
+    },
+    {
+        "element1": "brake failure",
+        "element2": "car rear-end collision",
+        "causal": 1
+    },
+    {
+        "element1": "gas leakage",
+        "element2": "carbon monoxide poisoning",
+        "causal": 1
+    },
+    {
+        "element1": "long-term headphone use",
+        "element2": "hearing loss",
+        "causal": 1
+    },
+    {
+        "element1": "floods",
+        "element2": "crop yield reduction",
+        "causal": 1
+    },
+    {
+        "element1": "drug allergy",
+        "element2": "skin rashes",
+        "causal": 1
+    },
+    {
+        "element1": "heavy drinking",
+        "element2": "pancreatitis",
+        "causal": 1
+    },
+    {
+        "element1": "water deficiency",
+        "element2": "dehydration",
+        "causal": 1
+    },
+    {
+        "element1": "vitamin C deficiency",
+        "element2": "scurvy",
+        "causal": 1
+    },
+    {
+        "element1": "calcium deficiency",
+        "element2": "osteoporosis",
+        "causal": 1
+    },
+    {
+        "element1": "iron deficiency",
+        "element2": "iron deficiency anemia",
+        "causal": 1
+    },
+    {
+        "element1": "vitamin D deficiency",
+        "element2": "rickets",
+        "causal": 1
+    },
+    {
+        "element1": "lead poisoning",
+        "element2": "intellectual impairment",
+        "causal": 1
+    },
+    {
+        "element1": "mercury poisoning",
+        "element2": "kidney damage",
+        "causal": 1
+    },
+    {
+        "element1": "arsenic poisoning",
+        "element2": "gastrointestinal bleeding",
+        "causal": 1
+    },
+    {
+        "element1": "radiation overdose",
+        "element2": "leukemia",
+        "causal": 1
+    },
+    {
+        "element1": "air pollution",
+        "element2": "chronic obstructive pulmonary disease",
+        "causal": 1
+    },
+    {
+        "element1": "noise pollution",
+        "element2": "tinnitus",
+        "causal": 1
+    },
+    {
+        "element1": "light pollution",
+        
+        "element2": "circadian rhythm disorder",
+        "causal": 1
+    },
+    {
+        "element1": "alcohol consumption during pregnancy",
+        "element2": "fetal alcohol syndrome",
+        "causal": 1
+    },
+    {
+        "element1": "smoking during pregnancy",
+        "element2": "fetal growth restriction",
+        "causal": 1
+    },
+    {
+        "element1": "drug abuse during pregnancy",
+        "element2": "fetal malformation",
+        "causal": 1
+    },
+    {
+        "element1": "uncontrolled diabetes during pregnancy",
+        "element2": "macrosomia",
+        "causal": 1
+    },
+    {
+        "element1": "hypertension during pregnancy",
+        "element2": "preeclampsia",
+        "causal": 1
+    },
+    {
+        "element1": "long-term use of antibiotics",
+        "element2": "dysbacteriosis",
+        "causal": 1
+    },
+    {
+        "element1": "long-term use of glucocorticoids",
+        "element2": "osteoporosis",
+        "causal": 1
+    },
+    {
+        "element1": "long-term use of non-steroidal anti-inflammatory drugs",
+        "element2": "gastric ulcer",
+        "causal": 1
+    },
+    {
+        "element1": "long-term use of statins",
+        "element2": "muscle soreness",
+        "causal": 1
+    },
+    {
+        "element1": "long-term use of sleeping pills",
+        "element2": "drug dependence",
+        "causal": 1
+    },
+    {
+        "element1": "severe burn",
+        "element2": "shock",
+        "causal": 1
+    },
+    {
+        "element1": "severe trauma",
+        "element2": "hemorrhagic shock",
+        "causal": 1
+    },
+    {
+        "element1": "acute myocardial infarction",
+        "element2": "chest pain",
+        "causal": 1
+    },
+    {
+        "element1": "cerebral infarction",
+        "element2": "hemiplegia",
+        "causal": 1
+    },
+    {
+        "element1": "cerebral hemorrhage",
+        "element2": "coma",
+        "causal": 1
+    },
+    {
+        "element1": "acute renal failure",
+        "element2": "oliguria",
+        "causal": 1
+    },
+    {
+        "element1": "acute liver failure",
+        "element2": "jaundice",
+        "causal": 1
+    },
+    {
+        "element1": "drunk driving",
+        "element2": "traffic accidents",
+        "causal": 1
+    },
+    {
+        "element1": "fatigue driving",
+        "element2": "traffic accidents",
+        "causal": 1
+    },
+    {
+        "element1": "running red lights",
+        "element2": "intersection collisions",
+        "causal": 1
+    },
+    {
+        "element1": "overloading",
+        "element2": "bridge collapse",
+        "causal": 1
+    },
+    {
+        "element1": "tire blowout",
+        "element2": "car rollover",
+        "causal": 1
+    },
+    {
+        "element1": "steering failure",
+        "element2": "loss of vehicle control",
+        "causal": 1
+    },
+    {
+        "element1": "fuel leakage",
+        "element2": "car fire",
+        "causal": 1
+    },
+    {
+        "element1": "unlicensed driving",
+        "element2": "illegal driving accidents",
+        "causal": 1
+    },
+    {
+        "element1": "driving without seatbelt",
+        "element2": "increased injury severity in accidents",
+        "causal": 1
+    },
+    {
+        "element1": "child car seat absence",
+        "element2": "child injury in accidents",
+        "causal": 1
+    },
+    {
+        "element1": "speeding in school zones",
+        "element2": "pedestrian accidents",
+        "causal": 1
+    },
+    {
+        "element1": "road icing",
+        "element2": "skidding accidents",
+        "causal": 1
+    },
+    {
+        "element1": "road collapse",
+        "element2": "vehicle accidents",
+        "causal": 1
+    },
+    {
+        "element1": "traffic signal failure",
+        "element2": "intersection chaos",
+        "causal": 1
+    },
+    {
+        "element1": "blind spot driving",
+        "element2": "pedestrian collisions",
+        "causal": 1
+    },
+    {
+        "element1": "overtaking on curves",
+        "element2": "head-on collisions",
+        "causal": 1
+    },
+    {
+        "element1": "reverse driving",
+        "element2": "opposite direction accidents",
+        "causal": 1
+    },
+    {
+        "element1": "parking in fire lanes",
+        "element2": "fire rescue delay",
+        "causal": 1
+    },
+    {
+        "element1": "blocking emergency exits",
+        "element2": "evacuation difficulty in emergencies",
+        "causal": 1
+    },
+    {
+        "element1": "using mobile phones while driving",
+        "element2": "distracted driving accidents",
+        "causal": 1
+    },
+    {
+        "element1": "driving under the influence of drugs",
+        "element2": "impaired driving ability",
+        "causal": 1
+    },
+    {
+        "element1": "motor vehicle exhaust emissions",
+        "element2": "air pollution",
+        "causal": 1
+    },
+    {
+        "element1": "brake fluid leakage",
+        "element2": "brake failure",
+        "causal": 1
+    },
+    {
+        "element1": "airbag failure",
+        "element2": "increased injury in accidents",
+        "causal": 1
+    },
+    {
+        "element1": "windshield breakage",
+        "element2": "impaired driving vision",
+        "causal": 1
+    },
+    {
+        "element1": "vehicle overload",
+        "element2": "road damage",
+        "causal": 1
+    },
+    {
+        "element1": "unmaintained vehicle brakes",
+        "element2": "brake aging",
+        "causal": 1
+    },
+    {
+        "element1": "excessive vehicle speed",
+        "element2": "extended braking distance",
+        "causal": 1
+    },
+    {
+        "element1": "driving in heavy fog",
+        "element2": "reduced visibility accidents",
+        "causal": 1
+    },
+    {
+        "element1": "railway crossing barrier failure",
+        "element2": "train-vehicle collisions",
+        "causal": 1
+    },
+    {
+        "element1": "deforestation",
+        "element2": "soil erosion",
+        "causal": 1
+    },
+    {
+        "element1": "plastic pollution",
+        "element2": "marine organism death",
+        "causal": 1
+    },
+    {
+        "element1": "chemical fertilizer overuse",
+        "element2": "water eutrophication",
+        "causal": 1
+    },
+    {
+        "element1": "acid rain",
+        "element2": "soil acidification",
+        "causal": 1
+    },
+    {
+        "element1": "greenhouse gas emissions",
+        "element2": "global warming",
+        "causal": 1
+    },
+    {
+        "element1": "ozone layer depletion",
+        "element2": "ultraviolet radiation increase",
+        "causal": 1
+    },
+    {
+        "element1": "industrial waste water discharge",
+        "element2": "water pollution",
+        "causal": 1
+    },
+    {
+        "element1": "industrial waste gas emissions",
+        "element2": "acid rain",
+        "causal": 1
+    },
+    {
+        "element1": "solid waste landfill",
+        "element2": "groundwater pollution",
+        "causal": 1
+    },
+    {
+        "element1": "nuclear waste discharge",
+        "element2": "radioactive pollution",
+        "causal": 1
+    },
+    {
+        "element1": "desertification",
+        "element2": "land productivity decline",
+        "causal": 1
+    },
+    {
+        "element1": "wetland destruction",
+        "element2": "biodiversity loss",
+        "causal": 1
+    },
+    {
+        "element1": "red tide",
+        "element2": "fish death",
+        "causal": 1
+    },
+    {
+        "element1": "oil spills",
+        "element2": "marine ecosystem damage",
+        "causal": 1
+    },
+    {
+        "element1": "pesticide use",
+        "element2": "pollinator decline",
+        "causal": 1
+    },
+    {
+        "element1": "mining",
+        "element2": "land subsidence",
+        "causal": 1
+    },
+    {
+        "element1": "drought",
+        "element2": "crop failure",
+        "causal": 1
+    },
+    {
+        "element1": "typhoons",
+        "element2": "house collapse",
+        "causal": 1
+    },
+    {
+        "element1": "earthquakes",
+        "element2": "building damage",
+        "causal": 1
+    },
+    {
+        "element1": "tsunamis",
+        "element2": "coastal destruction",
+        "causal": 1
+    },
+    {
+        "element1": "volcanic eruptions",
+        "element2": "air pollution",
+        "causal": 1
+    },
+    {
+        "element1": "soil salinization",
+        "element2": "crop yield reduction",
+        "causal": 1
+    },
+    {
+        "element1": "water scarcity",
+        "element2": "agricultural production decline",
+        "causal": 1
+    },
+    {
+        "element1": "air pollution",
+        "element2": "visibility reduction",
+        "causal": 1
+    },
+    {
+        "element1": "noise pollution",
+        "element2": "hearing loss",
+        "causal": 1
+    },
+    {
+        "element1": "light pollution",
+        "element2": "nocturnal animal disturbance",
+        "causal": 1
+    },
+    {
+        "element1": "thermal pollution",
+        "element2": "aquatic organism death",
+        "causal": 1
+    },
+    {
+        "element1": "heavy metal pollution",
+        "element2": "biological enrichment",
+        "causal": 1
+    },
+    {
+        "element1": "excessive groundwater extraction",
+        "element2": "land subsidence",
+        "causal": 1
+    },
+    {
+        "element1": "invasive species",
+        "element2": "native species extinction",
+        "causal": 1
+    },
+    {
+        "element1": "interest rate hikes",
+        "element2": "stock market decline",
+        "causal": 1
+    },
+    {
+        "element1": "inflation",
+        "element2": "price increases",
+        "causal": 1
+    },
+    {
+        "element1": "currency depreciation",
+        "element2": "import cost rise",
+        "causal": 1
+    },
+    {
+        "element1": "trade wars",
+        "element2": "export decline",
+        "causal": 1
+    },
+    {
+        "element1": "raw material price increases",
+        "element2": "enterprise cost rise",
+        "causal": 1
+    },
+    {
+        "element1": "labor cost increases",
+        "element2": "enterprise profit decline",
+        "causal": 1
+    },
+    {
+        "element1": "tax increases",
+        "element2": "enterprise operating pressure",
+        "causal": 1
+    },
+    {
+        "element1": "financing difficulties",
+        "element2": "enterprise development slowdown",
+        "causal": 1
+    },
+    {
+        "element1": "market demand decline",
+        "element2": "enterprise production reduction",
+        "causal": 1
+    },
+    {
+        "element1": "supply chain disruption",
+        "element2": "product shortage",
+        "causal": 1
+    },
+    {
+        "element1": "exchange rate fluctuations",
+        "element2": "foreign trade risk",
+        "causal": 1
+    },
+    {
+        "element1": "bankruptcy",
+        "element2": "employee unemployment",
+        "causal": 1
+    },
+    {
+        "element1": "financial crisis",
+        "element2": "economic recession",
+        "causal": 1
+    },
+    {
+        "element1": "monetary easing",
+        "element2": "market liquidity increase",
+        "causal": 1
+    },
+    {
+        "element1": "fiscal stimulus",
+        "element2": "economic growth",
+        "causal": 1
+    },
+    {
+        "element1": "real estate bubble",
+        "element2": "financial risk",
+        "causal": 1
+    },
+    {
+        "element1": "enterprise debt default",
+        "element2": "financial market volatility",
+        "causal": 1
+    },
+    {
+        "element1": "oil price increases",
+        "element2": "logistics cost rise",
+        "causal": 1
+    },
+    {
+        "element1": "minimum wage increase",
+        "element2": "enterprise labor cost rise",
+        "causal": 1
+    },
+    {
+        "element1": "tariff increases",
+        "element2": "import commodity price rise",
+        "causal": 1
+    },
+    {
+        "element1": "frequent hair dyeing",
+        "element2": "hair dryness",
+        "causal": 1
+    },
+    {
+        "element1": "long-term air conditioning use",
+        "element2": "dry skin",
+        "causal": 1
+    },
+    {
+        "element1": "irregular eating",
+        "element2": "gastritis",
+        "causal": 1
+    },
+    {
+        "element1": "excessive sugar intake",
+        "element2": "tooth decay",
+        "causal": 1
+    },
+    {
+        "element1": "carbonated beverage consumption",
+        "element2": "calcium loss",
+        "causal": 1
+    },
+    {
+        "element1": "strong tea drinking",
+        "element2": "iron absorption inhibition",
+        "causal": 1
+    },
+    {
+        "element1": "overdieting",
+        "element2": "malnutrition",
+        "causal": 1
+    },
+    {
+        "element1": "lack of exercise",
+        "element2": "hyperlipidemia",
+        "causal": 1
+    },
+    {
+        "element1": "long-term phone use",
+        "element2": "cervical spondylosis",
+        "causal": 1
+    },
+    {
+        "element1": "eye strain",
+        "element2": "vision loss",
+        "causal": 1
+    },
+    {
+        "element1": "smoking",
+        "element2": "bad breath",
+        "causal": 1
+    },
+    {
+        "element1": "alcohol consumption",
+        "element2": "hangover",
+        "causal": 1
+    },
+    {
+        "element1": "spicy food intake",
+        "element2": "stomach pain",
+        "causal": 1
+    },
+    {
+        "element1": "cold food intake",
+        "element2": "abdominal pain",
+        "causal": 1
+    },
+    {
+        "element1": "overwork",
+        "element2": "fatigue",
+        "causal": 1
+    },
+    {
+        "element1": "lack of sleep",
+        "element2": "drowsiness",
+        "causal": 1
+    },
+    {
+        "element1": "excessive drinking",
+        "element2": "headache",
+        "causal": 1
+    },
+    {
+        "element1": "excessive sun exposure",
+        "element2": "skin aging",
+        "causal": 1
+    },
+    {
+        "element1": "long-term wearing high heels",
+        "element2": "foot pain",
+        "causal": 1
+    },
+    {
+        "element1": "frequent staying up late",
+        "element2": "acne",
+        "causal": 1
+    },
+    {
+        "element1": "dawn",
+        "element2": "bird chirping",
+        "causal": 0
+    },
+    {
+        "element1": "sunset",
+        "element2": "street light on",
+        "causal": 0
+    },
+    {
+        "element1": "New Year",
+        "element2": "fireworks",
+        "causal": 0
+    },
+    {
+        "element1": "weekend",
+        "element2": "shopping mall crowding",
+        "causal": 0
+    },
+    {
+        "element1": "rainy day",
+        "element2": "umbrella sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "summer",
+        "element2": "ice cream sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "winter",
+        "element2": "down jacket sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "exam period",
+        "element2": "library crowding",
+        "causal": 0
+    },
+    {
+        "element1": "rush hour",
+        "element2": "traffic jam",
+        "causal": 0
+    },
+    {
+        "element1": "holiday",
+        "element2": "tourist attraction crowding",
+        "causal": 0
+    },
+    {
+        "element1": "breakfast time",
+        "element2": "milk sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "dinner time",
+        "element2": "restaurant crowding",
+        "causal": 0
+    },
+    {
+        "element1": "movie release",
+        "element2": "cinema crowding",
+        "causal": 0
+    },
+    {
+        "element1": "sports event",
+        "element2": "sports bar crowding",
+        "causal": 0
+    },
+    {
+        "element1": "concert",
+        "element2": "ticket sales surge",
+        "causal": 0
+    },
+    {
+        "element1": "graduation season",
+        "element2": "photo studio business boom",
+        "causal": 0
+    },
+    {
+        "element1": "back-to-school season",
+        "element2": "stationery sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "Valentine's Day",
+        "element2": "rose sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "Christmas",
+        "element2": "Christmas tree sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "Mid-Autumn Festival",
+        "element2": "mooncake sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "Dragon Boat Festival",
+        "element2": "zongzi sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "Spring Festival",
+        "element2": "red envelope giving",
+        "causal": 0
+    },
+    {
+        "element1": "Lantern Festival",
+        "element2": "lantern viewing",
+        "causal": 0
+    },
+    {
+        "element1": "Qingming Festival",
+        "element2": "grave sweeping",
+        "causal": 0
+    },
+    {
+        "element1": "Labor Day",
+        "element2": "travel surge",
+        "causal": 0
+    },
+    {
+        "element1": "National Day",
+        "element2": "flag raising",
+        "causal": 0
+    },
+    {
+        "element1": "Halloween",
+        "element2": "pumpkin sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "Easter",
+        "element2": "egg decoration",
+        "causal": 0
+    },
+    {
+        "element1": "Ramadan",
+        "element2": "fasting",
+        "causal": 0
+    },
+    {
+        "element1": "Diwali",
+        "element2": "lamp lighting",
+        "causal": 0
+    },
+    {
+        "element1": "harvest season",
+        "element2": "grain storage",
+        "causal": 0
+    },
+    {
+        "element1": "planting season",
+        "element2": "seed sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "fishing season",
+        "element2": "fish catch increase",
+        "causal": 0
+    },
+    {
+        "element1": "hunting season",
+        "element2": "game sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "construction season",
+        "element2": "cement sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "renovation season",
+        "element2": "paint sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "moving season",
+        "element2": "moving company business boom",
+        "causal": 0
+    },
+    {
+        "element1": "recruitment season",
+        "element2": "resume submission increase",
+        "causal": 0
+    },
+    {
+        "element1": "job-hopping season",
+        "element2": "resignation increase",
+        "causal": 0
+    },
+    {
+        "element1": "tax declaration period",
+        "element2": "tax bureau crowding",
+        "causal": 0
+    },
+    {
+        "element1": "bill payment period",
+        "element2": "bank crowding",
+        "causal": 0
+    },
+    {
+        "element1": "electricity peak period",
+        "element2": "power load increase",
+        "causal": 0
+    },
+    {
+        "element1": "water use peak period",
+        "element2": "water supply pressure increase",
+        "causal": 0
+    },
+    {
+        "element1": "gas use peak period",
+        "element2": "gas consumption increase",
+        "causal": 0
+    },
+    {
+        "element1": "internet peak period",
+        "element2": "network congestion",
+        "causal": 0
+    },
+    {
+        "element1": "phone call peak period",
+        "element2": "communication congestion",
+        "causal": 0
+    },
+    {
+        "element1": "mail delivery peak period",
+        "element2": "courier workload increase",
+        "causal": 0
+    },
+    {
+        "element1": "garbage collection peak period",
+        "element2": "sanitation worker workload increase",
+        "causal": 0
+    },
+    {
+        "element1": "medical treatment peak period",
+        "element2": "hospital crowding",
+        "causal": 0
+    },
+    {
+        "element1": "pharmacy peak period",
+        "element2": "medicine sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "pet grooming peak period",
+        "element2": "pet shop crowding",
+        "causal": 0
+    },
+    {
+        "element1": "airport",
+        "element2": "airplanes",
+        "causal": 0
+    },
+    {
+        "element1": "train station",
+        "element2": "trains",
+        "causal": 0
+    },
+    {
+        "element1": "bus station",
+        "element2": "buses",
+        "causal": 0
+    },
+    {
+        "element1": "port",
+        "element2": "ships",
+        "causal": 0
+    },
+    {
+        "element1": "highway",
+        "element2": "cars",
+        "causal": 0
+    },
+    {
+        "element1": "park",
+        "element2": "trees",
+        "causal": 0
+    },
+    {
+        "element1": "school",
+        "element2": "students",
+        "causal": 0
+    },
+    {
+        "element1": "hospital",
+        "element2": "doctors",
+        "causal": 0
+    },
+    {
+        "element1": "library",
+        "element2": "books",
+        "causal": 0
+    },
+    {
+        "element1": "gym",
+        "element2": "fitness equipment",
+        "causal": 0
+    },
+    {
+        "element1": "supermarket",
+        "element2": "commodities",
+        "causal": 0
+    },
+    {
+        "element1": "restaurant",
+        "element2": "tables and chairs",
+        "causal": 0
+    },
+    {
+        "element1": "cinema",
+        "element2": "movie screens",
+        "causal": 0
+    },
+    {
+        "element1": "theater",
+        "element2": "stages",
+        "causal": 0
+    },
+    {
+        "element1": "museum",
+        "element2": "cultural relics",
+        "causal": 0
+    },
+    {
+        "element1": "gallery",
+        "element2": "paintings",
+        "causal": 0
+    },
+    {
+        "element1": "stadium",
+        "element2": "sports fields",
+        "causal": 0
+    },
+    {
+        "element1": "swimming pool",
+        "element2": "water",
+        "causal": 0
+    },
+    {
+        "element1": "hotel",
+        "element2": "beds",
+        "causal": 0
+    },
+    {
+        "element1": "office building",
+        "element2": "desks and chairs",
+        "causal": 0
+    },
+    {
+        "element1": "factory",
+        "element2": "machinery",
+        "causal": 0
+    },
+    {
+        "element1": "farm",
+        "element2": "crops",
+        "causal": 0
+    },
+    {
+        "element1": "orchard",
+        "element2": "fruit trees",
+        "causal": 0
+    },
+    {
+        "element1": "vineyard",
+        "element2": "grapevines",
+        "causal": 0
+    },
+    {
+        "element1": "greenhouse",
+        "element2": "vegetables",
+        "causal": 0
+    },
+    {
+        "element1": "fish pond",
+        "element2": "fish",
+        "causal": 0
+    },
+    {
+        "element1": "zoo",
+        "element2": "animals",
+        "causal": 0
+    },
+    {
+        "element1": "aquarium",
+        "element2": "marine organisms",
+        "causal": 0
+    },
+    {
+        "element1": "botanical garden",
+        "element2": "plants",
+        "causal": 0
+    },
+    {
+        "element1": "amusement park",
+        "element2": "roller coasters",
+        "causal": 0
+    },
+    {
+        "element1": "shopping mall",
+        "element2": "elevators",
+        "causal": 0
+    },
+    {
+        "element1": "residential area",
+        "element2": "elevators",
+        "causal": 0
+    },
+    {
+        "element1": "bank",
+        "element2": "ATMs",
+        "causal": 0
+    },
+    {
+        "element1": "post office",
+        "element2": "mailboxes",
+        "causal": 0
+    },
+    {
+        "element1": "fire station",
+        "element2": "fire engines",
+        "causal": 0
+    },
+    {
+        "element1": "police station",
+        "element2": "police cars",
+        "causal": 0
+    },
+    {
+        "element1": "ambulance station",
+        "element2": "ambulances",
+        "causal": 0
+    },
+    {
+        "element1": "gas station",
+        "element2": "fuel dispensers",
+        "causal": 0
+    },
+    {
+        "element1": "charging station",
+        "element2": "charging piles",
+        "causal": 0
+    },
+    {
+        "element1": "laundry",
+        "element2": "washing machines",
+        "causal": 0
+    },
+    {
+        "element1": "dry cleaner",
+        "element2": "dry cleaning machines",
+        "causal": 0
+    },
+    {
+        "element1": "barber shop",
+        "element2": "hair cutting tools",
+        "causal": 0
+    },
+    {
+        "element1": "beauty salon",
+        "element2": "beauty equipment",
+        "causal": 0
+    },
+    {
+        "element1": "pet shop",
+        "element2": "pet supplies",
+        "causal": 0
+    },
+    {
+        "element1": "florist",
+        "element2": "flowers",
+        "causal": 0
+    },
+    {
+        "element1": "bakery",
+        "element2": "bread",
+        "causal": 0
+    },
+    {
+        "element1": "coffee shop",
+        "element2": "coffee machines",
+        "causal": 0
+    },
+    {
+        "element1": "tea house",
+        "element2": "tea sets",
+        "causal": 0
+    },
+    {
+        "element1": "bar",
+        "element2": "wine glasses",
+        "causal": 0
+    },
+    {
+        "element1": "convenience store",
+        "element2": "snacks",
+        "causal": 0
+    },
+    {
+        "element1": "mobile phone brand",
+        "element2": "call quality",
+        "causal": 0
+    },
+    {
+        "element1": "TV brand",
+        "element2": "picture quality",
+        "causal": 0
+    },
+    {
+        "element1": "refrigerator capacity",
+        "element2": "fresh-keeping effect",
+        "causal": 0
+    },
+    {
+        "element1": "washing machine brand",
+        "element2": "washing effect",
+        "causal": 0
+    },
+    {
+        "element1": "air conditioner brand",
+        "element2": "cooling effect",
+        "causal": 0
+    },
+    {
+        "element1": "rice cooker brand",
+        "element2": "cooked rice taste",
+        "causal": 0
+    },
+    {
+        "element1": "microwave oven brand",
+        "element2": "heating speed",
+        "causal": 0
+    },
+    {
+        "element1": "oven size",
+        "element2": "baking effect",
+        "causal": 0
+    },
+    {
+        "element1": "electric baking pan brand",
+        "element2": "pancake taste",
+        "causal": 0
+    },
+    {
+        "element1": "juicer power",
+        "element2": "juice nutrition",
+        "causal": 0
+    },
+    {
+        "element1": "water dispenser style",
+        "element2": "water quality",
+        "causal": 0
+    },
+    {
+        "element1": "robot vacuum brand",
+        "element2": "cleaning effect",
+        "causal": 0
+    },
+    {
+        "element1": "projector price",
+        "element2": "projection clarity",
+        "causal": 0
+    },
+    {
+        "element1": "printer brand",
+        "element2": "printing speed",
+        "causal": 0
+    },
+    {
+        "element1": "keyboard brand",
+        "element2": "key life",
+        "causal": 0
+    },
+    {
+        "element1": "mouse brand",
+        "element2": "response speed",
+        "causal": 0
+    },
+    {
+        "element1": "router brand",
+        "element2": "network speed",
+        "causal": 0
+    },
+    {
+        "element1": "power bank brand",
+        "element2": "battery life",
+        "causal": 0
+    },
+    {
+        "element1": "speaker brand",
+        "element2": "sound quality",
+        "causal": 0
+    },
+    {
+        "element1": "headphone amplifier price",
+        "element2": "sound effect",
+        "causal": 0
+    },
+    {
+        "element1": "TV box brand",
+        "element2": "playback smoothness",
+        "causal": 0
+    },
+    {
+        "element1": "smart watch brand",
+        "element2": "heart rate monitoring accuracy",
+        "causal": 0
+    },
+    {
+        "element1": "treadmill brand",
+        "element2": "weight loss effect",
+        "causal": 0
+    },
+    {
+        "element1": "yoga mat brand",
+        "element2": "yoga effect",
+        "causal": 0
+    },
+    {
+        "element1": "dumbbell weight",
+        "element2": "muscle growth",
+        "causal": 0
+    },
+    {
+        "element1": "gripper brand",
+        "element2": "grip strength improvement",
+        "causal": 0
+    },
+    {
+        "element1": "skipping rope length",
+        "element2": "skipping speed",
+        "causal": 0
+    },
+    {
+        "element1": "fitness ring brand",
+        "element2": "fitness effect",
+        "causal": 0
+    },
+    {
+        "element1": "wrist guard brand",
+        "element2": "wrist protection effect",
+        "causal": 0
+    },
+    {
+        "element1": "sports water bottle brand",
+        "element2": "hydration effect",
+        "causal": 0
+    },
+    {
+        "element1": "quick-drying shirt brand",
+        "element2": "quick-drying effect",
+        "causal": 0
+    },
+    {
+        "element1": "sun protection clothing brand",
+        "element2": "sun protection effect",
+        "causal": 0
+    },
+    {
+        "element1": "hiking shoe brand",
+        "element2": "anti-slip effect",
+        "causal": 0
+    },
+    {
+        "element1": "tent brand",
+        "element2": "rainproof effect",
+        "causal": 0
+    },
+    {
+        "element1": "sleeping bag brand",
+        "element2": "warmth retention effect",
+        "causal": 0
+    },
+    {
+        "element1": "outdoor stove brand",
+        "element2": "heating speed",
+        "causal": 0
+    },
+    {
+        "element1": "thermal mug mat brand",
+        "element2": "heat preservation effect",
+        "causal": 0
+    },
+    {
+        "element1": "mug lid brand",
+        "element2": "leak-proof effect",
+        "causal": 0
+    },
+    {
+        "element1": "straw brand",
+        "element2": "drinking convenience",
+        "causal": 0
+    },
+    {
+        "element1": "ice cube tray brand",
+        "element2": "ice making speed",
+        "causal": 0
+    },
+    {
+        "element1": "sealed jar brand",
+        "element2": "fresh-keeping effect",
+        "causal": 0
+    },
+    {
+        "element1": "peeler brand",
+        "element2": "peeling efficiency",
+        "causal": 0
+    },
+    {
+        "element1": "cutting board brand",
+        "element2": "chopping experience",
+        "causal": 0
+    },
+    {
+        "element1": "wok spatula brand",
+        "element2": "stir-frying effect",
+        "causal": 0
+    },
+    {
+        "element1": "soup spoon brand",
+        "element2": "soup serving convenience",
+        "causal": 0
+    },
+    {
+        "element1": "slotted spoon brand",
+        "element2": "water draining effect",
+        "causal": 0
+    },
+    {
+        "element1": "steamer brand",
+        "element2": "steaming effect",
+        "causal": 0
+    },
+    {
+        "element1": "clay pot brand",
+        "element2": "soup taste",
+        "causal": 0
+    },
+    {
+        "element1": "non-stick pan brand",
+        "element2": "non-stick effect",
+        "causal": 0
+    },
+    {
+        "element1": "iron wok brand",
+        "element2": "iron supplement effect",
+        "causal": 0
+    },
+    {
+        "element1": "stainless steel pot brand",
+        "element2": "durability",
+        "causal": 0
+    },
+    {
+        "element1": "enamel pot brand",
+        "element2": "heat preservation effect",
+        "causal": 0
+    },
+    {
+        "element1": "pressure cooker brand",
+        "element2": "cooking speed",
+        "causal": 0
+    },
+    {
+        "element1": "air fryer brand",
+        "element2": "frying effect",
+        "causal": 0
+    },
+    {
+        "element1": "electric cooking pot brand",
+        "element2": "noodle cooking taste",
+        "causal": 0
+    },
+    {
+        "element1": "health pot brand",
+        "element2": "tea brewing effect",
+        "causal": 0
+    },
+    {
+        "element1": "coffee machine brand",
+        "element2": "coffee taste",
+        "causal": 0
+    },
+    {
+        "element1": "tea set brand",
+        "element2": "tea tasting experience",
+        "causal": 0
+    },
+    {
+        "element1": "tea tray brand",
+        "element2": "water drainage effect",
+        "causal": 0
+    },
+    {
+        "element1": "fair cup brand",
+        "element2": "tea pouring uniformity",
+        "causal": 0
+    },
+    {
+        "element1": "teacup brand",
+        "element2": "tea drinking experience",
+        "causal": 0
+    },
+    {
+        "element1": "tea pet brand",
+        "element2": "tea pot nurturing effect",
+        "causal": 0
+    },
+    {
+        "element1": "tea knife brand",
+        "element2": "tea prying efficiency",
+        "causal": 0
+    },
+    {
+        "element1": "tea scoop brand",
+        "element2": "tea adding convenience",
+        "causal": 0
+    },
+    {
+        "element1": "tea strainer brand",
+        "element2": "filtering effect",
+        "causal": 0
+    },
+    {
+        "element1": "tea towel brand",
+        "element2": "wiping effect",
+        "causal": 0
+    },
+    {
+        "element1": "bookmark brand",
+        "element2": "reading experience",
+        "causal": 0
+    },
+    {
+        "element1": "book end brand",
+        "element2": "book organizing effect",
+        "causal": 0
+    },
+    {
+        "element1": "reading lamp brand",
+        "element2": "reading comfort",
+        "causal": 0
+    },
+    {
+        "element1": "laptop stand brand",
+        "element2": "office comfort",
+        "causal": 0
+    },
+    {
+        "element1": "file cabinet brand",
+        "element2": "storage effect",
+        "causal": 0
+    },
+    {
+        "element1": "stapler brand",
+        "element2": "stapling efficiency",
+        "causal": 0
+    },
+    {
+        "element1": "paper clip brand",
+        "element2": "fixing effect",
+        "causal": 0
+    },
+    {
+        "element1": "sticky note brand",
+        "element2": "adhesion firmness",
+        "causal": 0
+    },
+    {
+        "element1": "gel pen brand",
+        "element2": "writing smoothness",
+        "causal": 0
+    },
+    {
+        "element1": "fountain pen brand",
+        "element2": "writing experience",
+        "causal": 0
+    },
+    {
+        "element1": "highlighter brand",
+        "element2": "marking effect",
+        "causal": 0
+    },
+    {
+        "element1": "correction tape brand",
+        "element2": "correction effect",
+        "causal": 0
+    },
+    {
+        "element1": "seal brand",
+        "element2": "seal clarity",
+        "causal": 0
+    },
+    {
+        "element1": "ink pad brand",
+        "element2": "seal effect",
+        "causal": 0
+    },
+    {
+        "element1": "file folder brand",
+        "element2": "file protection effect",
+        "causal": 0
+    },
+    {
+        "element1": "file bag brand",
+        "element2": "file preservation effect",
+        "causal": 0
+    },
+    {
+        "element1": "label paper brand",
+        "element2": "printing clarity",
+        "causal": 0
+    },
+    {
+        "element1": "tape brand",
+        "element2": "adhesion firmness",
+        "causal": 0
+    },
+    {
+        "element1": "double-sided tape brand",
+        "element2": "adhesion effect",
+        "causal": 0
+    },
+    {
+        "element1": "masking tape brand",
+        "element2": "residue-free effect",
+        "causal": 0
+    },
+    {
+        "element1": "velcro brand",
+        "element2": "adhesion firmness",
+        "causal": 0
+    },
+    {
+        "element1": "cable tie brand",
+        "element2": "binding effect",
+        "causal": 0
+    },
+    {
+        "element1": "scissors brand",
+        "element2": "cutting efficiency",
+        "causal": 0
+    },
+    {
+        "element1": "utility knife brand",
+        "element2": "cutting effect",
+        "causal": 0
+    },
+    {
+        "element1": "tape measure brand",
+        "element2": "measurement accuracy",
+        "causal": 0
+    },
+    {
+        "element1": "screwdriver brand",
+        "element2": "screw turning efficiency",
+        "causal": 0
+    },
+    {
+        "element1": "wrench brand",
+        "element2": "nut turning effect",
+        "causal": 0
+    },
+    {
+        "element1": "pliers brand",
+        "element2": "clamping effect",
+        "causal": 0
+    },
+    {
+        "element1": "claw hammer brand",
+        "element2": "nailing efficiency",
+        "causal": 0
+    },
+    {
+        "element1": "level brand",
+        "element2": "measurement accuracy",
+        "causal": 0
+    },
+    {
+        "element1": "electric drill brand",
+        "element2": "drilling efficiency",
+        "causal": 0
+    },
+    {
+        "element1": "hot melt glue gun brand",
+        "element2": "gluing effect",
+        "causal": 0
+    },
+    {
+        "element1": "glass glue brand",
+        "element2": "sealing effect",
+        "causal": 0
+    },
+    {
+        "element1": "latex paint brand",
+        "element2": "wall painting effect",
+        "causal": 0
+    },
+    {
+        "element1": "wallpaper brand",
+        "element2": "pasting effect",
+        "causal": 0
+    },
+    {
+        "element1": "caulk brand",
+        "element2": "caulking effect",
+        "causal": 0
+    },
+    {
+        "element1": "floor drain brand",
+        "element2": "odor-proof effect",
+        "causal": 0
+    },
+    {
+        "element1": "shower head brand",
+        "element2": "water outlet effect",
+        "causal": 0
+    },
+    {
+        "element1": "toilet brand",
+        "element2": "flushing effect",
+        "causal": 0
+    },
+    {
+        "element1": "faucet brand",
+        "element2": "water outlet smoothness",
+        "causal": 0
+    },
+    {
+        "element1": "bath heater brand",
+        "element2": "heating effect",
+        "causal": 0
+    },
+    {
+        "element1": "towel rack brand",
+        "element2": "towel drying effect",
+        "causal": 0
+    },
+    {
+        "element1": "shelf brand",
+        "element2": "storage effect",
+        "causal": 0
+    },
+    {
+        "element1": "laundry detergent pod brand",
+        "element2": "laundry effect",
+        "causal": 0
+    },
+    {
+        "element1": "fabric softener bead brand",
+        "element2": "fragrance retention effect",
+        "causal": 0
+    },
+    {
+        "element1": "clothing disinfectant brand",
+        "element2": "disinfection effect",
+        "causal": 0
+    },
+    {
+        "element1": "fabric softener brand",
+        "element2": "clothing softness",
+        "causal": 0
+    },
+    {
+        "element1": "collar cleaner brand",
+        "element2": "stain removal effect",
+        "causal": 0
+    },
+    {
+        "element1": "bleach brand",
+        "element2": "bleaching effect",
+        "causal": 0
+    },
+    {
+        "element1": "black cat crossing the road",
+        "element2": "bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "breaking a mirror",
+        "element2": "seven years of bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "opening an umbrella indoors",
+        "element2": "bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "number 4",
+        "element2": "misfortune",
+        "causal": 0
+    },
+    {
+        "element1": "number 8",
+        "element2": "good fortune",
+        "causal": 0
+    },
+    {
+        "element1": "carrying lucky charms",
+        "element2": "avoiding accidents",
+        "causal": 0
+    },
+    {
+        "element1": "praying",
+        "element2": "wish fulfillment",
+        "causal": 0
+    },
+    {
+        "element1": "burning incense",
+        "element2": "blessing",
+        "causal": 0
+    },
+    {
+        "element1": "divination",
+        "element2": "predicting the future",
+        "causal": 0
+    },
+    {
+        "element1": "horoscope",
+        "element2": "daily fortune",
+        "causal": 0
+    },
+    {
+        "element1": "constellation",
+        "element2": "personality",
+        "causal": 0
+    },
+    {
+        "element1": "zodiac sign",
+        "element2": "life fortune",
+        "causal": 0
+    },
+    {
+        "element1": "face reading",
+        "element2": "fate",
+        "causal": 0
+    },
+    {
+        "element1": "palm reading",
+        "element2": "life trajectory",
+        "causal": 0
+    },
+    {
+        "element1": "feng shui",
+        "element2": "wealth accumulation",
+        "causal": 0
+    },
+    {
+        "element1": "lucky color",
+        "element2": "good luck",
+        "causal": 0
+    },
+    {
+        "element1": "lucky direction",
+        "element2": "success",
+        "causal": 0
+    },
+    {
+        "element1": "dream interpretation",
+        "element2": "future events",
+        "causal": 0
+    },
+    {
+        "element1": "coin tossing",
+        "element2": "decision making",
+        "causal": 0
+    },
+    {
+        "element1": "wish making on shooting stars",
+        "element2": "wish realization",
+        "causal": 0
+    },
+    {
+        "element1": "blowing out candles on birthday cake",
+        "element2": "wish fulfillment",
+        "causal": 0
+    },
+    {
+        "element1": "knocking on wood",
+        "element2": "warding off bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "throwing salt over shoulder",
+        "element2": "warding off evil spirits",
+        "causal": 0
+    },
+    {
+        "element1": "wearing red underwear",
+        "element2": "warding off bad luck in zodiac year",
+        "causal": 0
+    },
+    {
+        "element1": "putting up couplets",
+        "element2": "warding off evil spirits",
+        "causal": 0
+    },
+    {
+        "element1": "setting off firecrackers",
+        "element2": "driving away monsters",
+        "causal": 0
+    },
+    {
+        "element1": "eating dumplings on New Year's Eve",
+        "element2": "wealth accumulation",
+        "causal": 0
+    },
+    {
+        "element1": "eating mooncakes on Mid-Autumn Festival",
+        "element2": "family reunion",
+        "causal": 0
+    },
+    {
+        "element1": "eating zongzi on Dragon Boat Festival",
+        "element2": "warding off evil spirits",
+        "causal": 0
+    },
+    {
+        "element1": "wearing sachets on Dragon Boat Festival",
+        "element2": "warding off diseases",
+        "causal": 0
+    },
+    {
+        "element1": "hanging calamus and wormwood",
+        "element2": "warding off evil spirits",
+        "causal": 0
+    },
+    {
+        "element1": "giving red envelopes",
+        "element2": "blessing",
+        "causal": 0
+    },
+    {
+        "element1": "sending greeting cards",
+        "element2": "good luck",
+        "causal": 0
+    },
+    {
+        "element1": "planting lucky bamboo",
+        "element2": "good fortune",
+        "causal": 0
+    },
+    {
+        "element1": "raising goldfish",
+        "element2": "wealth",
+        "causal": 0
+    },
+    {
+        "element1": "wearing jade",
+        "element2": "protection",
+        "causal": 0
+    },
+    {
+        "element1": "wearing pearls",
+        "element2": "peace",
+        "causal": 0
+    },
+    {
+        "element1": "wearing crystals",
+        "element2": "energy enhancement",
+        "causal": 0
+    },
+    {
+        "element1": "drinking lunar new year wine",
+        "element2": "good luck for the new year",
+        "causal": 0
+    },
+    {
+        "element1": "eating tangyuan on Lantern Festival",
+        "element2": "reunion",
+        "causal": 0
+    },
+    {
+        "element1": "spring cleaning",
+        "element2": "sweeping away bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "posting fu characters upside down",
+        "element2": "fu arriving",
+        "causal": 0
+    },
+    {
+        "element1": "kissing under mistletoe",
+        "element2": "good luck in love",
+        "causal": 0
+    },
+    {
+        "element1": "putting a penny in shoes",
+        "element2": "wealth",
+        "causal": 0
+    },
+    {
+        "element1": "carrying a rabbit's foot",
+        "element2": "good luck",
+        "causal": 0
+    },
+    {
+        "element1": "avoiding walking under ladders",
+        "element2": "avoiding bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "throwing rice at weddings",
+        "element2": "fertility",
+        "causal": 0
+    },
+    {
+        "element1": "cutting hair during lunar new year",
+        "element2": "cutting off good luck",
+        "causal": 0
+    },
+    {
+        "element1": "seeing a rainbow",
+        "element2": "good luck",
+        "causal": 0
+    },
+    {
+        "element1": "finding a four-leaf clover",
+        "element2": "good luck",
+        "causal": 0
+    },
+    {
+        "element1": "hearing an owl hoot",
+        "element2": "bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "killing a spider",
+        "element2": "bad luck",
+        "causal": 0
+    },
+    {
+        "element1": "occasional staying up late",
+        "element2": "immunity decline",
+        "causal": 0
+    },
+    {
+        "element1": "moderate drinking",
+        "element2": "cardiovascular disease",
+        "causal": 0
+    },
+    {
+        "element1": "short-term stress",
+        "element2": "hair loss",
+        "causal": 0
+    },
+    {
+        "element1": "occasional consumption of high-sugar foods",
+        "element2": "diabetes",
+        "causal": 0
+    },
+    {
+        "element1": "mild water deficiency",
+        "element2": "constipation",
+        "causal": 0
+    },
+    {
+        "element1": "occasional sedentary behavior",
+        "element2": "lumbar disc herniation",
+        "causal": 0
+    },
+    {
+        "element1": "moderate caffeine intake",
+        "element2": "palpitations",
+        "causal": 0
+    },
+    {
+        "element1": "short-term noise exposure",
+        "element2": "hearing loss",
+        "causal": 0
+    },
+    {
+        "element1": "occasional sun exposure",
+        "element2": "skin cancer",
+        "causal": 0
+    },
+    {
+        "element1": "mild formaldehyde exposure",
+        "element2": "respiratory diseases",
+        "causal": 0
+    },
+    {
+        "element1": "occasional speeding",
+        "element2": "traffic accidents",
+        "causal": 0
+    },
+    {
+        "element1": "moderate pesticide residues",
+        "element2": "food poisoning",
+        "causal": 0
+    },
+    {
+        "element1": "short-term headphone use",
+        "element2": "tinnitus",
+        "causal": 0
+    },
+    {
+        "element1": "mild obesity",
+        "element2": "hypertension",
+        "causal": 0
+    },
+    {
+        "element1": "occasional binge eating",
+        "element2": "acute gastroenteritis",
+        "causal": 0
+    },
+    {
+        "element1": "short-term vitamin D deficiency",
+        "element2": "osteoporosis",
+        "causal": 0
+    },
+    {
+        "element1": "mild air pollution",
+        "element2": "chronic obstructive pulmonary disease",
+        "causal": 0
+    },
+    {
+        "element1": "occasional holding urine",
+        "element2": "urinary tract infection",
+        "causal": 0
+    },
+    {
+        "element1": "short-term lack of exercise",
+        "element2": "hyperlipidemia",
+        "causal": 0
+    },
+    {
+        "element1": "mild radiation exposure",
+        "element2": "leukemia",
+        "causal": 0
+    },
+    {
+        "element1": "short-term statin use",
+        "element2": "muscle soreness",
+        "causal": 0
+    },
+    {
+        "element1": "occasional drinking",
+        "element2": "fatty liver",
+        "causal": 0
+    },
+    {
+        "element1": "mild hyperuricemia",
+        "element2": "gout",
+        "causal": 0
+    },
+    {
+        "element1": "short-term staying up late",
+        "element2": "neurasthenia",
+        "causal": 0
+    },
+    {
+        "element1": "occasional takeout consumption",
+        "element2": "nutritional imbalance",
+        "causal": 0
+    },
+    {
+        "element1": "mild water deficiency",
+        "element2": "dehydration",
+        "causal": 0
+    },
+    {
+        "element1": "short-term noise pollution",
+        "element2": "sleep disorders",
+        "causal": 0
+    },
+    {
+        "element1": "occasional hair dyeing",
+        "element2": "hair dryness",
+        "causal": 0
+    },
+    {
+        "element1": "short-term air conditioning use",
+        "element2": "Sjögren's syndrome",
+        "causal": 0
+    },
+    {
+        "element1": "occasional skipping breakfast",
+        "element2": "gallstones",
+        "causal": 0
+    },
+    {
+        "element1": "moderate carbonated beverage consumption",
+        "element2": "calcium loss",
+        "causal": 0
+    },
+    {
+        "element1": "short-term anxiety",
+        "element2": "insomnia",
+        "causal": 0
+    },
+    {
+        "element1": "occasional strong tea drinking",
+        "element2": "iron deficiency",
+        "causal": 0
+    },
+    {
+        "element1": "short-term frequent staying up late",
+        "element2": "acne",
+        "causal": 0
+    },
+    {
+        "element1": "mild light pollution",
+        "element2": "circadian rhythm disorder",
+        "causal": 0
+    },
+    {
+        "element1": "occasional overdieting",
+        "element2": "malnutrition",
+        "causal": 0
+    },
+    {
+        "element1": "mild soil salinization",
+        "element2": "crop yield reduction",
+        "causal": 0
+    },
+    {
+        "element1": "short-term excessive logging",
+        "element2": "soil erosion",
+        "causal": 0
+    },
+    {
+        "element1": "mild plastic pollution",
+        "element2": "marine organism death",
+        "causal": 0
+    },
+    {
+        "element1": "moderate chemical fertilizer use",
+        "element2": "water eutrophication",
+        "causal": 0
+    },
+    {
+        "element1": "mild acid rain",
+        "element2": "soil acidification",
+        "causal": 0
+    },
+    {
+        "element1": "short-term cold wave",
+        "element2": "crop frost damage",
+        "causal": 0
+    },
+    {
+        "element1": "mild sandstorm",
+        "element2": "air quality decline",
+        "causal": 0
+    },
+    {
+        "element1": "moderate industrial waste gas emissions",
+        "element2": "acid rain",
+        "causal": 0
+    },
+    {
+        "element1": "mild red tide",
+        "element2": "fishery yield reduction",
+        "causal": 0
+    },
+    {
+        "element1": "short-term floods",
+        "element2": "crop yield reduction",
+        "causal": 0
+    },
+    {
+        "element1": "mild drought",
+        "element2": "crop failure",
+        "causal": 0
+    },
+    {
+        "element1": "moderate nuclear wastewater discharge",
+        "element2": "marine pollution",
+        "causal": 0
+    },
+    {
+        "element1": "short-term interest rate hikes",
+        "element2": "stock market decline",
+        "causal": 0
+    },
+    {
+        "element1": "mild inflation",
+        "element2": "price increases",
+        "causal": 0
+    },
+    {
+        "element1": "short-term reserve requirement ratio cuts",
+        "element2": "market liquidity increase",
+        "causal": 0
+    },
+    {
+        "element1": "mild trade frictions",
+        "element2": "export enterprise losses",
+        "causal": 0
+    },
+    {
+        "element1": "moderate raw material price increases",
+        "element2": "enterprise profit decline",
+        "causal": 0
+    },
+    {
+        "element1": "short-term epidemic lockdown",
+        "element2": "offline consumption decline",
+        "causal": 0
+    },
+    {
+        "element1": "mild exchange rate depreciation",
+        "element2": "import cost rise",
+        "causal": 0
+    },
+    {
+        "element1": "moderate enterprise layoffs",
+        "element2": "unemployment rate rise",
+        "causal": 0
+    },
+    {
+        "element1": "mild mortgage rate hikes",
+        "element2": "housing demand decline",
+        "causal": 0
+    },
+    {
+        "element1": "short-term tax cuts",
+        "element2": "enterprise investment increase",
+        "causal": 0
+    },
+    {
+        "element1": "mild supply chain disruption",
+        "element2": "product shortage",
+        "causal": 0
+    },
+    {
+        "element1": "moderate oil price increases",
+        "element2": "logistics cost rise",
+        "causal": 0
+    },
+    {
+        "element1": "short-term e-commerce impact",
+        "element2": "physical store closures",
+        "causal": 0
+    },
+    {
+        "element1": "mild minimum wage increase",
+        "element2": "enterprise labor cost rise",
+        "causal": 0
+    },
+    {
+        "element1": "moderate bond defaults",
+        "element2": "financial market panic",
+        "causal": 0
+    },
+    {
+        "element1": "short-term subsidy policies",
+        "element2": "new energy vehicle sales increase",
+        "causal": 0
+    },
+    {
+        "element1": "mild RMB appreciation",
+        "element2": "export competitiveness decline",
+        "causal": 0
+    },
+    {
+        "element1": "short-term stock market volatility",
+        "element2": "residents' wealth shrinkage",
+        "causal": 0
+    },
+    {
+        "element1": "mild overcapacity",
+        "element2": "product price decline",
+        "causal": 0
+    },
+    {
+        "element1": "short-term digital RMB promotion",
+        "element2": "cash use reduction",
+        "causal": 0
+    },
+    {
+        "element1": "mild fatigue driving",
+        "element2": "traffic accidents",
+        "causal": 0
+    },
+    {
+        "element1": "moderate running red lights",
+        "element2": "intersection collisions",
+        "causal": 0
+    },
+    {
+        "element1": "mild vehicle overloading",
+        "element2": "bridge collapse",
+        "causal": 0
+    },
+    {
+        "element1": "short-term road icing",
+        "element2": "chain rear-end collisions",
+        "causal": 0
+    },
+    {
+        "element1": "mild drunk driving",
+        "element2": "confusion",
+        "causal": 0
+    },
+    {
+        "element1": "long-term drinking of boiled water",
+        "element2": "healthy longevity",
+        "causal": 0
+    },
+    {
+        "element1": "regular work and rest",
+        "element2": "reduced diseases",
+        "causal": 0
+    },
+    {
+        "element1": "moderate exercise",
+        "element2": "life extension",
+        "causal": 0
+    },
+    {
+        "element1": "balanced diet",
+        "element2": "immunity enhancement",
+        "causal": 0
+    },
+    {
+        "element1": "regular physical examinations",
+        "element2": "early disease detection",
+        "causal": 0
+    },
+    {
+        "element1": "vaccination",
+        "element2": "infectious disease prevention",
+        "causal": 0
+    },
+    {
+        "element1": "wearing masks",
+        "element2": "COVID-19 infection prevention",
+        "causal": 0
+    },
+    {
+        "element1": "frequent hand washing",
+        "element2": "reduced bacterial infections",
+        "causal": 0
+    },
+    {
+        "element1": "seat belt use",
+        "element2": "reduced collision casualties",
+        "causal": 0
+    },
+    {
+        "element1": "regular vehicle maintenance",
+        "element2": "reduced failures",
+        "causal": 0
+    },
+    {
+        "element1": "garbage classification",
+        "element2": "reduced environmental pollution",
+        "causal": 0
+    },
+    {
+        "element1": "afforestation",
+        "element2": "air quality improvement",
+        "causal": 0
+    },
+    {
+        "element1": "energy conservation",
+        "element2": "carbon emission reduction",
+        "causal": 0
+    },
+    {
+        "element1": "renewable energy use",
+        "element2": "greenhouse gas emission reduction",
+        "causal": 0
+    },
+    {
+        "element1": "reasonable fertilization",
+        "element2": "crop yield improvement",
+        "causal": 0
+    },
+    {
+        "element1": "farmland irrigation",
+        "element2": "drought relief",
+        "causal": 0
+    },
+    {
+        "element1": "price control",
+        "element2": "inflation stabilization",
+        "causal": 0
+    },
+    {
+        "element1": "interest rate hikes",
+        "element2": "exchange rate stabilization",
+        "causal": 0
+    },
+    {
+        "element1": "tax cuts and fee reductions",
+        "element2": "enterprise vitality stimulation",
+        "causal": 0
+    },
+    {
+        "element1": "employment position increase",
+        "element2": "unemployment rate reduction",
+        "causal": 0
+    },
+    {
+        "element1": "strengthened supervision",
+        "element2": "reduced financial risks",
+        "causal": 0
+    },
+    {
+        "element1": "improved social security",
+        "element2": "residents' happiness enhancement",
+        "causal": 0
+    },
+    {
+        "element1": "education popularization",
+        "element2": "national quality improvement",
+        "causal": 0
+    },
+    {
+        "element1": "medical improvement",
+        "element2": "health level enhancement",
+        "causal": 0
+    },
+    {
+        "element1": "strengthened fire-fighting facilities",
+        "element2": "reduced fire losses",
+        "causal": 0
+    }
+]
