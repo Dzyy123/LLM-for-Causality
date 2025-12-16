@@ -1,58 +1,66 @@
-# whitebox_json_loader.py
 import json
-from llm_utils import LocalLLMClient, setup_logging
+import os
+import numpy as np  
 
-def load_causal_500_json(json_path: str) -> list:
-    """读取causal_500.json，返回样本列表：[{"element1": "...", "element2": "...", "causal": 0/1}, ...]"""
+def load_causal_500_json(json_path: str = "./causal_500.json") -> list:
+    """Load REAL causal test set (no fake data)"""
+    if not os.path.exists(json_path):
+        raise FileNotFoundError(f"❌ Test set JSON not found: {json_path}")
+    if not json_path.endswith(".json"):
+        raise ValueError("❌ Only REAL JSON test set is supported")
+    
     with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    # 校验字段
-    for idx, item in enumerate(data):
-        if not all(k in item for k in ["element1", "element2", "causal"]):
-            raise ValueError(f"JSON样本{idx}缺少字段：element1/element2/causal")
-        # 确保causal是0/1
-        item["causal"] = int(item["causal"])
-    return data
+        json_data = json.load(f)
+    
+    # Validate REAL data fields
+    required_fields = ["element1", "element2", "causal"]
+    for idx, item in enumerate(json_data):
+        for field in required_fields:
+            if field not in item:
+                raise KeyError(f"❌ REAL sample {idx} missing field: {field}")
+    
+    print(f"✅ Loaded REAL test set: {len(json_data)} samples")
+    return json_data
 
 def get_model_probs_for_json(
     json_data: list,
-    model_id: str,
-    local_path: str,
-    device: str = "cpu"
+    client,  
+    batch_size: int = 20
 ) -> list:
-    """
-    对causal_500.json的每个样本，获取模型预测的Yes概率
-    返回：所有样本的Yes概率列表（用于后续最优温度计算）
-    """
-    # 初始化模型客户端
-    setup_logging(level="INFO")
-    client = LocalLLMClient(
-        model_id=model_id,
-        local_path=local_path,
-        mirror_url="https://hf-mirror.com",
-        device=device,
-        max_tokens=4000,
-    )
+    """Get REAL LLM probabilities for test set (no fake data)"""
+    from whitebox_token_utils import extract_yes_no_probs
     
-    expert_probs_list = []  # 存储所有样本的Yes概率
-    system_prompt = "You are a professional medical assistant. After detailed thinking and deductions, answer yes or no only."
+    expert_probs_list = []
+    total_samples = len(json_data)
     
-    # 遍历JSON中的每个样本
-    for idx, item in enumerate(json_data):
-        element1 = item["element1"]
-        element2 = item["element2"]
-        prompt = f"Is there any causal relationship between {element1} and {element2}?"
+    if total_samples == 0:
+        raise ValueError("❌ Empty test set! Cannot generate REAL probabilities.")
+    
+    for batch_idx in range(0, total_samples, batch_size):
+        batch_start = batch_idx
+        batch_end = min(batch_idx + batch_size, total_samples)
+        batch_data = json_data[batch_start:batch_end]
         
-        print(f"\n【批量预测】处理样本{idx+1}/{len(json_data)}: {element1} → {element2}")
-        # 获取模型响应
-        response = client.chat(prompt=prompt, system_prompt=system_prompt)
-        # 提取Yes/No概率（复用之前的Token提取函数）
-        from whitebox_token_utils import extract_yes_no_probs
-        probs = client.get_token_distributions(response, skip_zeros=True, skip_thinking=True)
-        yes_prob, no_prob = extract_yes_no_probs(probs)
-        expert_probs_list.append(yes_prob)
-        print(f"【批量预测】样本{idx+1}的Yes概率: {yes_prob:.4f}")
+        for item in batch_data:
+            e1 = item["element1"]
+            e2 = item["element2"]
+            prompt = f"Is there any direct causal relationship between {e1} and {e2}? Only output Yes or No."
+            system_prompt = """You are a professional causal inference expert. 
+Strictly distinguish direct causality from correlation. Only output Yes or No (no other text)."""
+            
+            # Only REAL LLM response (no fake)
+            try:
+                response = client.chat(prompt=prompt, system_prompt=system_prompt)
+                probs = client.get_token_distributions(response, skip_zeros=True, skip_thinking=True)
+                yes_prob, _ = extract_yes_no_probs(probs)
+                expert_probs_list.append(yes_prob)
+            except Exception as e:
+                raise RuntimeError(f"❌ Failed to predict REAL probability for {e1}→{e2}: {e}\nDo NOT use fake data! Fix LLM connection first.")
+        
+        print(f"📊 Batch {batch_idx//batch_size + 1} completed | Predicted {batch_end}/{total_samples} REAL probabilities")
     
-    # 卸载模型
-    client.unload_model()
+    if len(expert_probs_list) != total_samples:
+        raise ValueError(f"❌ REAL probabilities count ({len(expert_probs_list)}) mismatch with samples ({total_samples})")
+    
+    print(f"✅ Generated REAL probabilities for {len(expert_probs_list)} samples")
     return expert_probs_list
