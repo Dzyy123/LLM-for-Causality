@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from whitebox_calibration import (
     temperature_scaling,
     calculate_mse,
@@ -28,7 +29,20 @@ print("Step 1: 读取causal_500.json并批量获取模型预测概率")
 print("="*80)
 # 读取JSON
 json_data = load_causal_500_json(JSON_PATH)
-json_data = json_data[:50]
+
+# ========== 关键修改：随机抽取50个样本（替代取前50个） ==========
+# 容错处理：如果数据总量不足50，取全部并提示
+sample_size = 50
+if len(json_data) < sample_size:
+    print(f"⚠️  注意：JSON数据总量({len(json_data)})不足{sample_size}个，将使用全部数据")
+    random_json_data = json_data  # 不足时取全部
+else:
+    # 随机抽取50个（无重复）
+    random_json_data = random.sample(json_data, sample_size)
+# 赋值给原变量，保持后续逻辑不变
+json_data = random_json_data
+# ==============================================================
+
 # 批量获取每个样本的Yes概率（耗时，因为要逐个调用模型）
 expert_probs_list = get_model_probs_for_json(
     json_data=json_data,
