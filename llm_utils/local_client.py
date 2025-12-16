@@ -247,6 +247,9 @@ class LocalLLMClient(BaseLLMClient):
         self,
         prompt: str,
         system_prompt: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        seed: Optional[int] = None,
         **kwargs
     ) -> LLMResponse:
         """Send a chat message and get a response.
@@ -254,6 +257,10 @@ class LocalLLMClient(BaseLLMClient):
         Args:
             prompt (str): The user's input prompt.
             system_prompt (Optional[str]): Optional system prompt to set context.
+            temperature (Optional[float]): Sampling temperature. If None, uses instance default.
+            max_tokens (Optional[int]): Maximum tokens to generate. If None, uses instance default.
+            seed (Optional[int]): Random seed for reproducible generation. If provided,
+                sets the random seed for PyTorch and ensures deterministic sampling.
             **kwargs: Additional generation parameters.
         
         Returns:
@@ -287,11 +294,20 @@ class LocalLLMClient(BaseLLMClient):
             if system_prompt:
                 full_prompt = f"{system_prompt}\n\n{prompt}"
         
-        return self._generate(full_prompt, **kwargs)
+        return self._generate(
+            full_prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            **kwargs
+        )
     
     def chat_with_history(
         self,
         messages: List[ChatMessage],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        seed: Optional[int] = None,
         **kwargs
     ) -> LLMResponse:
         """Send a conversation with history and get a response.
@@ -299,6 +315,10 @@ class LocalLLMClient(BaseLLMClient):
         Args:
             messages (List[ChatMessage]): List of chat messages representing
                 the conversation.
+            temperature (Optional[float]): Sampling temperature. If None, uses instance default.
+            max_tokens (Optional[int]): Maximum tokens to generate. If None, uses instance default.
+            seed (Optional[int]): Random seed for reproducible generation. If provided,
+                sets the random seed for PyTorch and ensures deterministic sampling.
             **kwargs: Additional generation parameters.
         
         Returns:
@@ -328,13 +348,30 @@ class LocalLLMClient(BaseLLMClient):
                 f"{msg.role}: {msg.content}" for msg in messages
             )
         
-        return self._generate(full_prompt, **kwargs)
+        return self._generate(
+            full_prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            **kwargs
+        )
     
-    def _generate(self, prompt: str, **kwargs) -> LLMResponse:
+    def _generate(
+        self,
+        prompt: str,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        seed: Optional[int] = None,
+        **kwargs
+    ) -> LLMResponse:
         """Generate response from the model.
         
         Args:
             prompt (str): The formatted prompt string.
+            temperature (Optional[float]): Sampling temperature. If None, uses instance default.
+            max_tokens (Optional[int]): Maximum tokens to generate. If None, uses instance default.
+            seed (Optional[int]): Random seed for reproducible generation. If provided,
+                sets the random seed for PyTorch and ensures deterministic sampling.
             **kwargs: Additional generation parameters.
                 return_token_probs (bool): Includes token probabilities in the response metadata. Defaults to True.
         
@@ -342,9 +379,15 @@ class LocalLLMClient(BaseLLMClient):
             LLMResponse: Standardized LLM response object with optional token
                 probabilities in metadata['token_probabilities'].
         """
-        temperature = kwargs.get("temperature", self.temperature)
-        max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        temperature = temperature if temperature is not None else self.temperature
+        max_tokens = max_tokens if max_tokens is not None else self.max_tokens
         return_token_probs = kwargs.get("return_token_probs", True)
+        
+        # Set seed for reproducibility if provided
+        if seed is not None:
+            torch.manual_seed(seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(seed)
         
         inputs = self._tokenizer(prompt, return_tensors="pt").to(self._model.device)
         input_length = inputs.input_ids.shape[1]
@@ -378,7 +421,12 @@ class LocalLLMClient(BaseLLMClient):
                     
                     # Sample next token
                     if temperature > 0:
-                        next_token_id = torch.multinomial(probs, num_samples=1)
+                        # Set generator for reproducibility if seed is provided
+                        generator = None
+                        if seed is not None:
+                            generator = torch.Generator(device=probs.device)
+                            generator.manual_seed(seed + len(generated_tokens))
+                        next_token_id = torch.multinomial(probs, num_samples=1, generator=generator)
                     else:
                         next_token_id = torch.argmax(probs, dim=-1, keepdim=True)
                     

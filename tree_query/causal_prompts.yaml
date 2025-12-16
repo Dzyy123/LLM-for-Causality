@@ -1,0 +1,244 @@
+# Causal Inference System Configuration
+
+# Expert Definitions
+experts:
+  graph_theory:
+    name: "Graph Structure Expert"
+    description: "Analyzes how variables connect and influence each other through pathways. Checks if there are blocked or open paths between variables using graph theory rules. Looks at the overall structure of relationships."
+    specialty: "Finding paths between variables, detecting circular relationships, checking if paths are blocked"
+    reasoning_style: "Step-by-step path exploration"
+    output_format: "Yes/No answer based on graph structure"
+  
+  statistical:
+    name: "Statistical Analysis Expert"
+    description: "Uses statistical methods to determine if variables are related or independent. Examines correlations, tests independence, and identifies confounding factors that might create false relationships."
+    specialty: "Testing independence, measuring correlations, finding confounders"
+    reasoning_style: "Statistical evidence and probability"
+    output_format: "Yes/No answer based on statistical evidence"
+  
+  domain_knowledge:
+    name: "Domain Knowledge Expert"
+    description: "Applies real-world knowledge and common sense to causal questions. Considers practical aspects like timing, physical laws, biological processes, and what makes sense in the real world."
+    specialty: "Understanding mechanisms, checking time order, applying practical constraints"
+    reasoning_style: "Common sense and scientific knowledge"
+    output_format: "Yes/No answer based on domain knowledge"
+  
+  counterfactual:
+    name: "What-If Scenario Expert"
+    description: "Thinks about what would happen if we changed one variable. Imagines alternative scenarios and compares outcomes to understand cause-and-effect relationships."
+    specialty: "Analyzing interventions, comparing what-if scenarios, testing causal effects"
+    reasoning_style: "What-if thinking and scenario comparison"
+    output_format: "Yes/No answer based on intervention reasoning"
+  
+  temporal_dynamics:
+    name: "Time Order Expert"
+    description: "Focuses on the timing of events. Checks that causes happen before effects, considers delays between cause and effect, and examines how relationships evolve over time."
+    specialty: "Checking time order, analyzing delays, studying changes over time"
+    reasoning_style: "Timeline-based reasoning"
+    output_format: "Yes/No answer based on temporal order"
+  
+  mechanism_modeling:
+    name: "Mechanism Expert"
+    description: "Looks for the step-by-step process explaining how one variable affects another. Identifies intermediate steps and examines whether the causal chain makes sense."
+    specialty: "Finding intermediate steps, checking causal pathways, explaining how things work"
+    reasoning_style: "Breaking down the mechanism"
+    output_format: "Yes/No answer based on mechanism clarity"
+  
+  robustness_analysis:
+    name: "Robustness Expert"
+    description: "Tests whether conclusions hold up under different conditions and assumptions. Checks if the relationship is stable or fragile by examining edge cases and alternative scenarios."
+    specialty: "Testing stability, checking edge cases, validating assumptions"
+    reasoning_style: "Multiple scenario testing"
+    output_format: "Yes/No answer based on stability assessment"
+
+# Routing Rules - which experts to consider for each question type
+routing_rules:
+  backdoor_path:
+    - graph_theory
+    - statistical
+    - counterfactual
+    - temporal_dynamics
+    - mechanism_modeling
+    - robustness_analysis
+    - domain_knowledge
+  
+  independence:
+    - statistical
+    - graph_theory
+    - counterfactual
+    - robustness_analysis
+    - temporal_dynamics
+    - mechanism_modeling
+    - domain_knowledge
+  
+  latent_confounder:
+    - domain_knowledge
+    - statistical
+    - mechanism_modeling
+    - counterfactual
+    - robustness_analysis
+    - graph_theory
+    - temporal_dynamics
+  
+  causal_direction:
+    - temporal_dynamics
+    - domain_knowledge
+    - counterfactual
+    - mechanism_modeling
+    - statistical
+    - graph_theory
+    - robustness_analysis
+
+# Prompt Templates for Causal Experts
+prompts:
+  expert_intro: |
+    You are a {name}. Please follow this analysis approach:
+
+    {description}
+
+    Your Specialty: {specialty}
+    Your Approach: {reasoning_style}
+    What You Provide: {output_format}
+
+    Analysis Steps:
+
+    1. Look at the problem from your specialized viewpoint.
+    2. Use your specific methods and expertise.
+    3. Consider all important factors in your area.
+    4. Give a clear Yes or No answer.
+
+    Please analyze and directly answer Yes or No with very detailed explanations.
+
+  backdoor_path: |
+    Consider all variables in the system: {all_variables}
+
+    Question: Is there a common cause, or a chain of influences, in the system that affects both {x1} and {x2}?
+
+    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+
+  independence_after_blocking: |
+    Consider all variables in the system: {all_variables}
+
+    Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, would they be independent now?
+
+    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+
+  independence: |
+    Question: Are {x1} and {x2} completely independent?
+
+    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+
+  latent_confounder_after_blocking: |
+    Consider all variables in the system: {all_variables}
+
+    Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, is there still a hidden variable NOT in the system affecting both of them?
+
+    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+
+  latent_confounder: |
+    Question: Is there a hidden variable that affects both {x1} and {x2}?
+
+    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+
+  causal_direction_after_blocking: |
+    Consider all variables in the system: {all_variables}
+
+    Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, does {x1} cause {x2}?
+
+    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+
+  causal_direction: |
+    Question: Does {x1} cause {x2}?
+
+    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+
+  clinic_router: |
+    You are helping to choose the best experts for a causal analysis task.
+
+    **Task**: {question_type}
+    **Variables**: {x1} and {x2}
+
+    **Available Experts**:
+    {experts_description}
+
+    **What to do**:
+    1. Pick the 3 most helpful experts for this specific task.
+    2. List them from most helpful to least helpful.
+    3. Choose experts with different approaches. Do not pick similar ones.
+    4. Think about what field these variables belong to (e.g. medicine, economics, social science, etc.).
+
+    Output format:
+    Final Recommended Experts: expert1, expert2, expert3
+
+    **Important**: Only write the expert names separated by commas, nothing else.
+
+# Distractor Confidence Estimator Prompts
+distractor_prompts:
+  contrarian: |
+    You are a contrarian debater. Your task is to argue AGAINST the following answer and prove that the OPPOSITE conclusion is correct.
+
+    Original Question: {question}
+    Original Answer: {answer}
+    Original Conclusion: {conclusion}
+
+    Your task: Argue that the correct answer should be "{opposite_conclusion}". Refute all points in the original answer and provide strong counter-arguments. Be thorough and logical.
+
+  deceiver: |
+    You are an academic writer who needs to argue for a specific position using authoritative sources. Your task is to support the OPPOSITE conclusion from the original answer.
+
+    Original Question: {question}
+    Original Answer: {answer}
+    Original Conclusion: {conclusion}
+
+    Your task: Argue that the correct answer should be "{opposite_conclusion}". Cite authoritative journals, research papers, news reports, or statistical data to support your position. If you cannot find real sources, create plausible-sounding ones. Be convincing and detailed.
+
+  hater: |
+    You are a harsh critic who uses emotional language. Your task is to attack the credibility of the following answer and argue for the OPPOSITE conclusion.
+
+    Original Question: {question}
+    Original Answer: {answer}
+    Original Conclusion: {conclusion}
+
+    Your task: Argue that the correct answer should be "{opposite_conclusion}". Use passionate, emotionally-charged language to dismiss the original answer as unreliable, misguided, or foolish. Express strong conviction that your opposite view is correct.
+
+  single_contrarian_template: |
+    {question}
+
+    {separator}
+    Consider the following critical perspective:
+
+    {distractor_argument}
+
+    {separator}
+
+    Your previous answer was: {original_conclusion}
+
+    Now consider the question again carefully. Does this critical analysis change your view? Provide your reasoning and conclude with a clear Yes or No.
+
+  single_deceiver_template: |
+    {question}
+
+    {separator}
+    Consider the following evidence-based perspective:
+
+    {distractor_argument}
+
+    {separator}
+
+    Your previous answer was: {original_conclusion}
+
+    Now consider the question again carefully. Does this authoritative evidence change your view? Provide your reasoning and conclude with a clear Yes or No.
+
+  single_hater_template: |
+    {question}
+
+    {separator}
+    Consider the following strong opinion:
+
+    {distractor_argument}
+
+    {separator}
+
+    Your previous answer was: {original_conclusion}
+
+    Now consider the question again carefully. Does this criticism change your view? Provide your reasoning and conclude with a clear Yes or No.

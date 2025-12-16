@@ -1,0 +1,272 @@
+"""
+Confidence Estimator Module
+
+Implements quantified confidence estimation using iterative prompting and mutual information.
+Compatible with the causal expert system - uses expert-specific prompts and yes/no extraction.
+"""
+
+import math, random
+from typing import List, Tuple, Dict, Union, Any
+from llm_utils import LocalLLMClient, OnlineLLMClient
+from utils import extract_yes_no_from_response
+
+
+# Type aliases
+Response = str
+SampleTuple = Tuple[int, ...]  # Tuple of extracted yes/no labels (0 or 1)
+
+
+class ConfidenceEstimator:
+    """
+    Estimates confidence scores for LLM responses using iterative prompting
+    and mutual information estimation.
+    
+    This implementation is compatible with the causal expert system:
+    - Uses expert-generated prompts
+    - Extracts yes/no labels from responses
+    - Computes mutual information over binary judgments
+    """
+    
+    def __init__(
+        self,
+        client: Union[LocalLLMClient, OnlineLLMClient],
+        k_samples: int = 50,
+        n_sequence_length: int = 3,
+        gamma1: float = 1e-6,
+        gamma2: float = 1e-6,
+    ):
+        """
+        Initialize the confidence estimator.
+        
+        Args:
+            client: LLM client for generating responses
+            k_samples: Number of sampling iterations
+            n_sequence_length: Length of response sequence
+            gamma1: Stabilization parameter for numerator
+            gamma2: Stabilization parameter for denominator
+        """
+        self.client = client
+        self.k_samples = k_samples
+        self.n_sequence_length = n_sequence_length
+        self.gamma1 = gamma1
+        self.gamma2 = gamma2
+    
+    def build_iterative_prompt(
+        self,
+        base_prompt: str,
+        history_responses: List[str]
+    ) -> str:
+        """
+        Build iterative prompt based on base expert prompt and history of responses.
+        
+        Args:
+            base_prompt: The expert's question prompt
+            history_responses: List of previous full response texts (with reasons)
+            
+        Returns:
+            Constructed prompt for next iteration
+        """
+        if not history_responses:
+            # First iteration: use the expert's original prompt
+            return base_prompt
+        
+        # Subsequent iterations: include previous answers with reasons
+        prompt = base_prompt + "\n\n"
+        prompt += "Previous answers to this question:\n"
+        
+        for i, response in enumerate(history_responses):
+            prompt += f"\nAnswer {i+1}:\n{response}\n"
+        
+        prompt += "\nPlease provide your answer again, considering the previous responses and their reasoning."
+        
+        return prompt
+    
+    def generate_pseudo_joint_sample(self, base_prompt: str) -> SampleTuple:
+        """
+        Generate a sample tuple from the pseudo-joint distribution Q̃.
+        Uses iterative sampling with yes/no extraction.
+        
+        Args:
+            base_prompt: The expert's question prompt
+            
+        Returns:
+            Tuple of sampled binary labels (0 or 1)
+        """
+        history_responses: List[str] = []
+        label_tuple: List[int] = []
+        
+        for i in range(self.n_sequence_length):
+            # Build current prompt F_i(x, Y1, ..., Yi)
+            current_prompt = self.build_iterative_prompt(base_prompt, history_responses)
+            
+            # Sample response from LLM
+            try:
+                response = self.client.chat(current_prompt, seed=random.randint(0, 1e6))
+                response_text = response.content if hasattr(response, 'content') else str(response)
+                
+                # Extract yes/no label
+                label = extract_yes_no_from_response(response_text)
+                
+                label_tuple.append(label)
+                history_responses.append(response_text)
+                
+            except Exception as e:
+                print(f"Warning: Sampling failed at iteration {i}: {e}")
+                # Use default label on failure
+                label_tuple.append(0)
+                history_responses.append("No (error during sampling)")
+        
+        return tuple(label_tuple)
+    
+    def compute_mutual_information(
+        self,
+        sample_set: List[SampleTuple]
+    ) -> float:
+        """
+        Compute empirical mutual information estimate Î_k(γ1, γ2).
+        Implements Algorithm 1 from the paper.
+        
+        Args:
+            sample_set: List of sampled label tuples
+            
+        Returns:
+            Mutual information estimate (epistemic uncertainty lower bound)
+        """
+        k = len(sample_set)
+        if k == 0:
+            return 0.0
+        
+        # Step 3: Construct unique element set U and compute frequencies
+        unique_tuple_to_frequency: Dict[SampleTuple, int] = {}
+        for sample in sample_set:
+            unique_tuple_to_frequency[sample] = unique_tuple_to_frequency.get(sample, 0) + 1
+        
+        unique_tuples = list(unique_tuple_to_frequency.keys())
+        
+        # Step 4.1: Construct normalized empirical joint distribution μ̂(Xi)
+        empirical_joint_prob: Dict[SampleTuple, float] = {
+            sample: count / k for sample, count in unique_tuple_to_frequency.items()
+        }
+        
+        # Step 4.2: Construct empirical marginal product distribution μ̂^⊗(Xi)
+        empirical_product_prob: Dict[SampleTuple, float] = {}
+        
+        for Xi in unique_tuples:
+            # Compute marginal probabilities for each position
+            # μ̂^⊗(Xi) = ∏_{j=1}^n μ̂_j(Xi_j)
+            product_prob = 1.0
+            
+            for position_j in range(len(Xi)):
+                # Count frequency of Xi[j] at position j across all samples
+                count_at_position_j = sum(
+                    1 for sample in sample_set if sample[position_j] == Xi[position_j]
+                )
+                marginal_prob_j = count_at_position_j / k
+                product_prob *= marginal_prob_j
+            
+            empirical_product_prob[Xi] = product_prob
+        
+        # Step 5: Compute mutual information estimate Î_k(γ1, γ2)
+        # Î_k(γ1, γ2) = ∑_{i in U} μ̂(Xi) * ln((μ̂(Xi) + γ1) / (μ̂^⊗(Xi) + γ2))
+        MI_estimate = 0.0
+        
+        for Xi in unique_tuples:
+            joint_prob = empirical_joint_prob[Xi]
+            product_prob = empirical_product_prob[Xi]
+            
+            numerator = joint_prob + self.gamma1
+            denominator = product_prob + self.gamma2
+            
+            MI_estimate += joint_prob * math.log(numerator / denominator)
+        
+        return MI_estimate
+    
+    def estimate_confidence(
+        self,
+        expert,
+        result: int,
+        verbose: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Estimate confidence score for an expert's judgment.
+        
+        Args:
+            expert: The expert instance (must have base_prompt and expert_type attributes)
+            result: The expert's answer (0 or 1)
+            verbose: Whether to print detailed information
+            
+        Returns:
+            Dictionary containing:
+                - epistemic_uncertainty: Mutual information estimate (uncertainty score)
+                - result: The input result (0 or 1)
+                - expert: The expert type
+                - sample_count: Number of samples used
+                - sequence_length: Length of each sample sequence
+        """
+        if verbose:
+            print(f"\n{'='*60}")
+            print(f"Estimating confidence for {expert.expert_type}")
+            print(f"Result: {'Yes' if result == 1 else 'No'}")
+            print('='*60)
+        
+        # Get the expert's base prompt
+        base_prompt = expert.base_prompt
+        
+        # Step 1: Iterative sampling from pseudo-joint distribution
+        if verbose:
+            print(f"\nStep 1: Generating {self.k_samples} sample sequences...")
+        
+        sample_set: List[SampleTuple] = []
+        for i in range(self.k_samples):
+            sample = self.generate_pseudo_joint_sample(base_prompt)
+            sample_set.append(sample)
+            
+            if verbose and (i + 1) % 10 == 0:
+                print(f"  Generated {i + 1}/{self.k_samples} samples")
+        
+        # Step 2: Compute mutual information estimate
+        if verbose:
+            print(f"\nStep 2: Computing mutual information...")
+        
+        mi_score = self.compute_mutual_information(sample_set)
+        
+        if verbose:
+            print(f"\nMutual Information: {mi_score:.6f}")
+            print(f"Interpretation: Higher MI = Higher Uncertainty = Less Confident")
+        
+        return {
+            "epistemic_uncertainty": mi_score,
+            "result": result,
+            "expert": expert.expert_type,
+            "sample_count": self.k_samples,
+            "sequence_length": self.n_sequence_length
+        }
+
+
+def create_confidence_estimator(
+    client: Union[LocalLLMClient, OnlineLLMClient],
+    k_samples: int = 50,
+    n_sequence_length: int = 2,
+    gamma1: float = 1e-6,
+    gamma2: float = 1e-6,
+) -> ConfidenceEstimator:
+    """
+    Factory function to create a confidence estimator.
+    
+    Args:
+        client: LLM client for generating responses
+        k_samples: Number of sampling iterations
+        n_sequence_length: Length of response sequence
+        gamma1: Stabilization parameter for numerator
+        gamma2: Stabilization parameter for denominator
+        
+    Returns:
+        ConfidenceEstimator instance
+    """
+    return ConfidenceEstimator(
+        client=client,
+        k_samples=k_samples,
+        n_sequence_length=n_sequence_length,
+        gamma1=gamma1,
+        gamma2=gamma2,
+    )

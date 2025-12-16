@@ -1,0 +1,431 @@
+"""
+Causal Discovery Framework with Distractor-Based Confidence Estimation
+
+A comprehensive framework for causal discovery that integrates:
+- Tree-based causal inference logic
+- MoE (Mixture of Experts) architecture
+- Distractor-based confidence estimation
+- Multi-calibration for probability adjustment
+- Prior and posterior causal graph generation
+
+This replaces the method-based confidence (frequency/probability/logit) with
+the more robust DistractorConfidenceEstimator.
+"""
+
+import logging
+from typing import List, Dict, Any, Tuple, Union
+from itertools import combinations
+import numpy as np
+from sklearn.cluster import KMeans
+
+from llm_utils import LocalLLMClient, OnlineLLMClient, setup_logging
+from experts import (
+    BackdoorPathExpert, 
+    IndependenceExpert, 
+    LatentConfounderExpert, 
+    CausalDirectionExpert
+)
+from distractor_confidence_estimator import create_distractor_confidence_estimator
+from expert_router import ExpertRouter
+from utils import aggregate_expert_results
+from config_loader import get_config
+
+
+# Configure module logger
+logger = logging.getLogger(__name__)
+
+
+class CausalDiscoveryFramework:
+    """
+    Main framework orchestrating causal discovery with distractor-based confidence.
+    
+    Architecture:
+    1. Tree-based query logic for systematic causal relationship determination
+    2. MoE expert routing for diverse perspectives
+    3. Distractor-based confidence estimation for robustness
+    4. Multi-calibration for probability refinement
+    """
+    
+    def __init__(
+        self,
+        client: Union[LocalLLMClient, OnlineLLMClient],
+        all_variables: List[str],
+        k1_samples: int = 5,
+        k2_samples: int = 2,
+        seed: int = 42,
+        max_workers: int = 10
+    ):
+        """
+        Initialize the causal discovery framework.
+        
+        Args:
+            client: LLM client for experts and confidence estimation
+            all_variables: List of all variables in the causal system
+            k1_samples: Number of original answer samples for confidence estimation
+            k2_samples: Number of distractor sets per original answer
+            seed: Random seed for reproducibility
+            max_workers: Maximum number of threads for parallel LLM requests
+        """
+        self.client = client
+        self.all_variables = all_variables
+        self.router = ExpertRouter(client)
+        self.config = get_config()
+        
+        # Initialize distractor-based confidence estimator
+        self.confidence_estimator = create_distractor_confidence_estimator(
+            client=client,
+            k1_samples=k1_samples,
+            k2_samples=k2_samples,
+            seed=seed,
+            max_workers=max_workers
+        )
+        
+        logger.info(f"Initialized CausalDiscoveryFramework with {len(all_variables)} variables")
+        logger.info(f"Confidence estimator: k1={k1_samples}, k2={k2_samples}")
+    
+    def _run_expert_with_confidence(
+        self,
+        expert_class: type,
+        question_type: str,
+        x1: str,
+        x2: str
+    ) -> Dict[str, Any]:
+        """
+        Run expert judgment with distractor-based confidence estimation.
+        
+        Args:
+            expert_class: The expert class to use
+            question_type: Type of question for routing
+            x1: First variable
+            x2: Second variable
+            
+        Returns:
+            Dict with label, confidence score, and expert details
+        """
+        # Select experts via router
+        selected_expert_types = self.router.select_experts(question_type, x1, x2, top_k=3)
+        logger.info(f"Selected experts for '{question_type}': {selected_expert_types}")
+        
+        # Execute expert judgments
+        expert_results = []
+        for expert_type in selected_expert_types:
+            try:
+                # Create expert instance
+                expert = expert_class(
+                    base_prompt="",  # Will be generated
+                    x1=x1,
+                    x2=x2,
+                    client=self.client,
+                    all_variables=', '.join(self.all_variables),
+                    expert_type=expert_type
+                )
+                expert.base_prompt = expert.generate_question()
+                
+                # Get expert judgment
+                result = expert.judge()
+                expert_results.append({
+                    "expert": expert_type,
+                    "label": result["label"],
+                    "response": result.get("response", "")
+                })
+                logger.info(f"Expert {expert_type}: label={result['label']}")
+                
+            except Exception as e:
+                logger.warning(f"Expert {expert_type} failed: {e}")
+                continue
+        
+        # Aggregate expert opinions
+        if not expert_results:
+            logger.warning("All experts failed, returning default result")
+            return {"label": 0, "confidence": 0.0, "expert_results": []}
+        
+        aggregated = aggregate_expert_results(expert_results)
+        final_label = aggregated["label"]
+        
+        # Estimate confidence using distractor-based approach
+        # Use the first successful expert for confidence estimation
+        representative_expert = expert_class(
+            base_prompt="",
+            x1=x1,
+            x2=x2,
+            client=self.client,
+            all_variables=', '.join(self.all_variables),
+            expert_type=selected_expert_types[0]
+        )
+        representative_expert.base_prompt = representative_expert.generate_question()
+        
+        try:
+            confidence_result = self.confidence_estimator.estimate_confidence(
+                representative_expert,
+                final_label
+            )
+            confidence_score = confidence_result["confidence_score"]
+            logger.info(f"Confidence score: {confidence_score:.4f}")
+        except Exception as e:
+            logger.warning(f"Confidence estimation failed: {e}, using default 0.5")
+            confidence_score = 0.5
+        
+        return {
+            "label": final_label,
+            "confidence": confidence_score,
+            "expert_results": expert_results
+        }
+    
+    def check_backdoor_path(self, x1: str, x2: str) -> Dict[str, Any]:
+        """Check if backdoor path exists between x1 and x2."""
+        logger.info(f"Checking backdoor path: {x1} ↔ {x2}")
+        return self._run_expert_with_confidence(
+            BackdoorPathExpert,
+            "backdoor_path",
+            x1,
+            x2
+        )
+    
+    def check_independence(self, x1: str, x2: str, after_blocking: bool = False) -> Dict[str, Any]:
+        """Check if x1 and x2 are independent (optionally after blocking backdoor paths)."""
+        logger.info(f"Checking independence: {x1} ⊥ {x2} (after_blocking={after_blocking})")
+        return self._run_expert_with_confidence(
+            IndependenceExpert,
+            "independence",
+            x1,
+            x2
+        )
+    
+    def check_latent_confounder(self, x1: str, x2: str, after_blocking: bool = False) -> Dict[str, Any]:
+        """Check if latent confounder exists between x1 and x2."""
+        logger.info(f"Checking latent confounder: {x1} ← ? → {x2} (after_blocking={after_blocking})")
+        return self._run_expert_with_confidence(
+            LatentConfounderExpert,
+            "latent_confounder",
+            x1,
+            x2
+        )
+    
+    def check_causal_direction(self, x1: str, x2: str, after_blocking: bool = False) -> Dict[str, Any]:
+        """Check if x1 causes x2."""
+        logger.info(f"Checking causal direction: {x1} → {x2} (after_blocking={after_blocking})")
+        return self._run_expert_with_confidence(
+            CausalDirectionExpert,
+            "causal_direction",
+            x1,
+            x2
+        )
+    
+    def tree_query(self, x1: str, x2: str) -> Dict[str, Any]:
+        """
+        Perform tree-based causal query following systematic logic.
+        
+        Decision tree:
+        1. Check backdoor path
+           - If exists:
+             a. Check independence after blocking
+                - If independent: return "independent"
+             b. Check latent confounder after blocking
+                - If exists: return "x<->y"
+             c. Check causal direction after blocking
+                - If x→y: return "x->y"
+                - Otherwise: return "y->x"
+           - If not exists:
+             a. Check independence directly
+                - If independent: return "independent"
+             b. Check latent confounder directly
+                - If exists: return "x<->y"
+             c. Check causal direction directly
+                - If x→y: return "x->y"
+                - Otherwise: return "y->x"
+        
+        Returns:
+            Dict with relation type, confidence, and execution log
+        """
+        logger.info(f"=== Tree Query: {x1} vs {x2} ===")
+        execution_log = []
+        
+        # Step 1: Check backdoor path
+        res_backdoor = self.check_backdoor_path(x1, x2)
+        execution_log.append(("backdoor_path", res_backdoor))
+        
+        if res_backdoor["label"] == 1:  # Backdoor path exists
+            logger.info("Backdoor path detected → analyzing after blocking")
+            
+            # Step 2a: Check independence after blocking
+            res_ind = self.check_independence(x1, x2, after_blocking=True)
+            execution_log.append(("independence_after_block", res_ind))
+            
+            if res_ind["label"] == 1:  # Independent after blocking
+                return {
+                    "relation": "independent",
+                    "confidence": res_ind["confidence"],
+                    "log": execution_log
+                }
+            
+            # Step 2b: Check latent confounder after blocking
+            res_latent = self.check_latent_confounder(x1, x2, after_blocking=True)
+            execution_log.append(("latent_confounder_after_block", res_latent))
+            
+            if res_latent["label"] == 1:  # Latent confounder exists
+                return {
+                    "relation": "x<->y",
+                    "confidence": res_latent["confidence"],
+                    "log": execution_log
+                }
+            
+            # Step 2c: Check causal direction after blocking
+            res_dir = self.check_causal_direction(x1, x2, after_blocking=True)
+            execution_log.append(("causal_direction_after_block", res_dir))
+            
+            if res_dir["label"] == 1:  # x causes y
+                return {
+                    "relation": "x->y",
+                    "confidence": res_dir["confidence"],
+                    "log": execution_log
+                }
+            else:  # y causes x
+                return {
+                    "relation": "y->x",
+                    "confidence": res_dir["confidence"],
+                    "log": execution_log
+                }
+        
+        else:  # No backdoor path
+            logger.info("No backdoor path → direct analysis")
+            
+            # Step 2a: Check independence directly
+            res_ind = self.check_independence(x1, x2, after_blocking=False)
+            execution_log.append(("independence_no_backdoor", res_ind))
+            
+            if res_ind["label"] == 1:  # Independent
+                return {
+                    "relation": "independent",
+                    "confidence": res_ind["confidence"],
+                    "log": execution_log
+                }
+            
+            # Step 2b: Check latent confounder directly
+            res_latent = self.check_latent_confounder(x1, x2, after_blocking=False)
+            execution_log.append(("latent_confounder_no_backdoor", res_latent))
+            
+            if res_latent["label"] == 1:  # Latent confounder exists
+                return {
+                    "relation": "x<->y",
+                    "confidence": res_latent["confidence"],
+                    "log": execution_log
+                }
+            
+            # Step 2c: Check causal direction directly
+            res_dir = self.check_causal_direction(x1, x2, after_blocking=False)
+            execution_log.append(("causal_direction_no_backdoor", res_dir))
+            
+            if res_dir["label"] == 1:  # x causes y
+                return {
+                    "relation": "x->y",
+                    "confidence": res_dir["confidence"],
+                    "log": execution_log
+                }
+            else:  # y causes x
+                return {
+                    "relation": "y->x",
+                    "confidence": res_dir["confidence"],
+                    "log": execution_log
+                }
+    
+    def discover_all_relations(self) -> Dict[Tuple[str, str], Dict[str, Any]]:
+        """
+        Discover causal relations between all variable pairs.
+        
+        Returns:
+            Dictionary mapping variable pairs to their causal relationships
+        """
+        logger.info(f"=== Discovering relations for all {len(self.all_variables)} variables ===")
+        all_relations = {}
+        
+        for x1, x2 in combinations(self.all_variables, 2):
+            logger.info(f"\nAnalyzing pair: ({x1}, {x2})")
+            result = self.tree_query(x1, x2)
+            all_relations[(x1, x2)] = result
+            logger.info(f"Result: {result['relation']} (confidence: {result['confidence']:.4f})")
+        
+        return all_relations
+    
+    def convert_to_probabilities(self, all_relations: Dict[Tuple[str, str], Dict[str, Any]]) -> Dict[Tuple[str, str], Dict[str, float]]:
+        """
+        Convert relation judgments to probability distributions.
+        
+        Args:
+            all_relations: Output from discover_all_relations()
+            
+        Returns:
+            Dict mapping pairs to probability distributions over relation types
+        """
+        logger.info("Converting relations to probability distributions")
+        probabilities = {}
+        
+        for pair, result in all_relations.items():
+            relation = result["relation"]
+            confidence = result["confidence"]
+            
+            # Convert to probability distribution
+            # Higher confidence = more concentrated distribution
+            if relation == "independent":
+                probs = {
+                    "independent": confidence,
+                    "latent": (1 - confidence) / 2,
+                    "causal": (1 - confidence) / 2
+                }
+            elif relation == "x<->y":
+                probs = {
+                    "independent": (1 - confidence) / 2,
+                    "latent": confidence,
+                    "causal": (1 - confidence) / 2
+                }
+            elif relation in ["x->y", "y->x"]:
+                probs = {
+                    "independent": (1 - confidence) / 2,
+                    "latent": (1 - confidence) / 2,
+                    "causal": confidence
+                }
+            else:
+                # Default uniform distribution
+                probs = {
+                    "independent": 1/3,
+                    "latent": 1/3,
+                    "causal": 1/3
+                }
+            
+            # Normalize to ensure sum = 1
+            total = sum(probs.values())
+            probabilities[pair] = {k: v/total for k, v in probs.items()}
+        
+        return probabilities
+    
+    def create_prior_causal_graph(
+        self,
+        calibrated_probabilities: Dict[Tuple[str, str], Dict[str, float]]
+    ) -> Dict[Tuple[str, str], str]:
+        """
+        Generate prior causal graph from calibrated probabilities.
+        
+        Args:
+            calibrated_probabilities: Probability distributions over relation types
+            
+        Returns:
+            Prior graph mapping pairs to relation types
+        """
+        logger.info("Creating prior causal graph")
+        prior_graph = {}
+        
+        for pair, probs in calibrated_probabilities.items():
+            # Choose relation type with highest probability
+            max_type = max(probs, key=probs.get)
+            max_prob = probs[max_type]
+            
+            if max_type == "independent":
+                prior_graph[pair] = "independent"
+            elif max_type == "latent":
+                prior_graph[pair] = "<->"
+            elif max_type == "causal":
+                # Use original tree query result to determine direction
+                prior_graph[pair] = "x->y"  # Default, should be refined
+            
+            logger.debug(f"{pair}: {prior_graph[pair]} (p={max_prob:.3f})")
+        
+        return prior_graph

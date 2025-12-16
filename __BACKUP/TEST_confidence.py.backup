@@ -1,0 +1,731 @@
+"""
+Test Confidence Estimator with Multiple Causal Expert Situations
+
+Tests confidence estimation across various causal scenarios and outputs sample sequences.
+"""
+
+import datetime
+from llm_utils import OnlineLLMClient, setup_logging
+from experts import BackdoorPathExpert, IndependenceExpert, CausalDirectionExpert, LatentConfounderExpert
+from confidence_estimator import create_confidence_estimator
+
+
+# Global log file handle
+log_file = None
+
+
+def init_log_file():
+    """Initialize the log file with timestamp and header."""
+    global log_file
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"confidence_test_log_{timestamp}.txt"
+    log_file = open(filename, 'w', encoding='utf-8')
+    
+    # Write header
+    log_file.write("="*100 + "\n")
+    log_file.write(" "*30 + "CONFIDENCE ESTIMATOR TEST LOG\n")
+    log_file.write("="*100 + "\n")
+    log_file.write(f"Test Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    log_file.write(f"Log File: {filename}\n")
+    log_file.write("="*100 + "\n\n")
+    
+    return filename
+
+
+def log_environment_settings(client, confidence_estimator):
+    """Log the environment and configuration settings."""
+    log_file.write("\n" + "/"*100 + "\n")
+    log_file.write(" ENVIRONMENT SETTINGS\n")
+    log_file.write("/"*100 + "\n\n")
+    
+    log_file.write("LLM Client Configuration:\n")
+    log_file.write(f"  API Base URL: {client.base_url}\n")
+    log_file.write(f"  Model Name: {client.model_name}\n")
+    log_file.write(f"  Max Tokens: {client.max_tokens}\n")
+    log_file.write(f"  Temperature: {client.temperature}\n\n")
+    
+    log_file.write("Confidence Estimator Configuration:\n")
+    log_file.write(f"  Sample Count (k_samples): {confidence_estimator.k_samples}\n")
+    log_file.write(f"  Sequence Length (n_sequence_length): {confidence_estimator.n_sequence_length}\n")
+    log_file.write(f"  Gamma1 (stabilization): {confidence_estimator.gamma1}\n")
+    log_file.write(f"  Gamma2 (stabilization): {confidence_estimator.gamma2}\n")
+    log_file.write("\n" + "/"*100 + "\n\n")
+    log_file.flush()
+
+
+def log_test_header(test_num, test_name, scenario_desc):
+    """Log the test header."""
+    log_file.write("\n\n" + "#"*100 + "\n")
+    log_file.write(f"# TEST {test_num}: {test_name}\n")
+    log_file.write(f"# {scenario_desc}\n")
+    log_file.write("#"*100 + "\n\n")
+    log_file.flush()
+
+
+def log_expert_config(expert, all_variables):
+    """Log expert configuration."""
+    log_file.write("┌" + "─"*98 + "┐\n")
+    log_file.write("│ EXPERT CONFIGURATION" + " "*77 + "│\n")
+    log_file.write("├" + "─"*98 + "┤\n")
+    log_file.write(f"│ Expert Type: {expert.expert_type:<83}│\n")
+    log_file.write(f"│ Variable X1: {expert.x1:<83}│\n")
+    log_file.write(f"│ Variable X2: {expert.x2:<83}│\n")
+    log_file.write(f"│ All Variables: {str(all_variables):<81}│\n")
+    log_file.write("└" + "─"*98 + "┘\n\n")
+    
+    log_file.write("Base Prompt:\n")
+    log_file.write("┌" + "─"*98 + "┐\n")
+    for line in expert.base_prompt.split('\n'):
+        if len(line) <= 96:
+            log_file.write(f"│ {line:<96} │\n")
+        else:
+            # Wrap long lines
+            words = line.split()
+            current_line = ""
+            for word in words:
+                if len(current_line) + len(word) + 1 <= 96:
+                    current_line += word + " "
+                else:
+                    log_file.write(f"│ {current_line:<96} │\n")
+                    current_line = word + " "
+            if current_line:
+                log_file.write(f"│ {current_line:<96} │\n")
+    log_file.write("└" + "─"*98 + "┘\n\n")
+    log_file.flush()
+
+
+def log_sample_sequence(sample_num, sample_tuple, prompts_and_responses):
+    """Log a single sample sequence with all prompts and responses."""
+    log_file.write("┏" + "━"*98 + "┓\n")
+    log_file.write(f"┃ SAMPLE SEQUENCE #{sample_num:<84}┃\n")
+    log_file.write(f"┃ Result: {sample_tuple}  =  [{' → '.join(['Yes' if s == 1 else 'No' for s in sample_tuple])}]{' '*(80-len(str(sample_tuple))-len(' → '.join(['Yes' if s == 1 else 'No' for s in sample_tuple])))}┃\n")
+    log_file.write("┗" + "━"*98 + "┛\n\n")
+    
+    for iteration, (prompt, response, label) in enumerate(prompts_and_responses, 1):
+        log_file.write(f"  ┌── ITERATION {iteration} " + "─"*(84-len(f"ITERATION {iteration} ")) + "┐\n")
+        log_file.write(f"  │\n")
+        
+        # Log prompt
+        log_file.write(f"  │ 📝 PROMPT:\n")
+        log_file.write(f"  │ ┌" + "─"*94 + "┐\n")
+        for line in prompt.split('\n'):
+            if len(line) <= 92:
+                log_file.write(f"  │ │ {line:<92} │\n")
+            else:
+                words = line.split()
+                current_line = ""
+                for word in words:
+                    if len(current_line) + len(word) + 1 <= 92:
+                        current_line += word + " "
+                    else:
+                        log_file.write(f"  │ │ {current_line:<92} │\n")
+                        current_line = word + " "
+                if current_line:
+                    log_file.write(f"  │ │ {current_line:<92} │\n")
+        log_file.write(f"  │ └" + "─"*94 + "┘\n")
+        log_file.write(f"  │\n")
+        
+        # Log response
+        log_file.write(f"  │ 💬 RESPONSE:\n")
+        log_file.write(f"  │ ┌" + "─"*94 + "┐\n")
+        for line in response.split('\n'):
+            if len(line) <= 92:
+                log_file.write(f"  │ │ {line:<92} │\n")
+            else:
+                words = line.split()
+                current_line = ""
+                for word in words:
+                    if len(current_line) + len(word) + 1 <= 92:
+                        current_line += word + " "
+                    else:
+                        log_file.write(f"  │ │ {current_line:<92} │\n")
+                        current_line = word + " "
+                if current_line:
+                    log_file.write(f"  │ │ {current_line:<92} │\n")
+        log_file.write(f"  │ └" + "─"*94 + "┘\n")
+        log_file.write(f"  │\n")
+        
+        # Log extracted label
+        label_str = "Yes (1)" if label == 1 else "No (0)"
+        log_file.write(f"  │ ✓ EXTRACTED LABEL: {label_str}\n")
+        log_file.write(f"  │\n")
+        log_file.write(f"  └" + "─"*96 + "┘\n\n")
+    
+    log_file.flush()
+
+
+def log_results(expert_judgment, mi_score, sample_count, unique_count, diversity_ratio):
+    """Log the final results."""
+    log_file.write("\n" + "╔" + "═"*98 + "╗\n")
+    log_file.write("║ RESULTS" + " "*90 + "║\n")
+    log_file.write("╠" + "═"*98 + "╣\n")
+    log_file.write(f"║ Expert Judgment: {expert_judgment:<82}║\n")
+    log_file.write(f"║ Epistemic Uncertainty (MI): {mi_score:.6f}{' '*68}║\n")
+    log_file.write(f"║ Sample Count: {sample_count:<83}║\n")
+    log_file.write(f"║ Unique Patterns: {unique_count:<82}║\n")
+    log_file.write(f"║ Diversity Ratio: {diversity_ratio:.2%}{' '*81}║\n")
+    
+    # Interpretation
+    if mi_score < 0.05:
+        interpretation = "Very High Confidence (Very Low Uncertainty)"
+    elif mi_score < 0.15:
+        interpretation = "High Confidence (Low Uncertainty)"
+    elif mi_score < 0.30:
+        interpretation = "Moderate Confidence"
+    else:
+        interpretation = "Low Confidence (High Uncertainty)"
+    
+    log_file.write(f"║ Interpretation: {interpretation:<82}║\n")
+    log_file.write("╚" + "═"*98 + "╝\n\n")
+    log_file.flush()
+
+
+def close_log_file():
+    """Close the log file."""
+    global log_file
+    if log_file:
+        log_file.write("\n\n" + "="*100 + "\n")
+        log_file.write(" "*40 + "END OF LOG\n")
+        log_file.write("="*100 + "\n")
+        log_file.close()
+
+
+def test_backdoor_path_scenario():
+    """Test confidence estimation for backdoor path detection."""
+    print("\n" + "="*80)
+    print("TEST 1: Backdoor Path Detection")
+    print("Scenario: Ice Cream Sales and Drowning Incidents (Temperature as confounder)")
+    print("="*80)
+    
+    log_test_header(1, "Backdoor Path Detection", 
+                    "Ice Cream Sales and Drowning Incidents (Temperature as confounder)")
+    
+    client = OnlineLLMClient(
+        api_key="sk-fnUHDzxXAimEnYgyX20Jag",
+        base_url="https://llmapi.paratera.com/v1/",
+        model_name="Qwen3-Next-80B-A3B-Thinking",
+        max_tokens=800,
+        temperature=0.7
+    )
+    
+    # Create confidence estimator
+    confidence_estimator = create_confidence_estimator(
+        client=client,
+        k_samples=8,
+        n_sequence_length=3,
+    )
+    
+    # Log environment settings
+    log_environment_settings(client, confidence_estimator)
+    
+    # Create expert
+    all_variables = ["Ice Cream Sales", "Drowning Incidents", "Temperature"]
+    expert = BackdoorPathExpert(
+        base_prompt="",
+        x1="Ice Cream Sales",
+        x2="Drowning Incidents",
+        client=client,
+        all_variables=all_variables,
+        expert_type="statistical"
+    )
+    expert.base_prompt = expert.generate_question()
+    
+    # Log expert configuration
+    log_expert_config(expert, all_variables)
+    
+    print(f"\nQuestion: Is there a backdoor path between {expert.x1} and {expert.x2}?")
+    print(f"Variables: {all_variables}")
+    print(f"Expert Type: {expert.expert_type}")
+    
+    # Get judgment with confidence and capture samples
+    print("\n" + "-"*80)
+    print("Generating sample sequences...")
+    print("-"*80)
+    
+    sample_set = []
+    for i in range(confidence_estimator.k_samples):
+        # Capture prompts and responses
+        prompts_and_responses = []
+        history_responses = []
+        
+        for j in range(confidence_estimator.n_sequence_length):
+            prompt = confidence_estimator.build_iterative_prompt(expert.base_prompt, history_responses)
+            response = client.chat(prompt, seed=__import__('random').randint(0, 1e6))
+            response_text = response.content if hasattr(response, 'content') else str(response)
+            label = __import__('utils').extract_yes_no_from_response(response_text)
+            
+            prompts_and_responses.append((prompt, response_text, label))
+            history_responses.append(response_text)
+        
+        sample = tuple([p[2] for p in prompts_and_responses])
+        sample_set.append(sample)
+        
+        # Output to console
+        sample_str = " → ".join(["Yes" if s == 1 else "No" for s in sample])
+        print(f"Sample {i+1:2d}: {sample} = [{sample_str}]")
+        
+        # Log to file
+        log_sample_sequence(i+1, sample, prompts_and_responses)
+    
+    # Compute MI
+    mi_score = confidence_estimator.compute_mutual_information(sample_set)
+    
+    # Get final judgment
+    result = expert.judge()
+    
+    print("\n" + "-"*80)
+    print("RESULTS:")
+    print("-"*80)
+    print(f"Expert Judgment: {'Yes' if result['label'] == 1 else 'No'}")
+    print(f"Epistemic Uncertainty (MI): {mi_score:.6f}")
+    print(f"Sample Count: {len(sample_set)}")
+    print(f"Sequence Length: {confidence_estimator.n_sequence_length}")
+    
+    # Analyze sample diversity
+    unique_samples = set(sample_set)
+    print(f"\nSample Diversity:")
+    print(f"  Unique patterns: {len(unique_samples)}")
+    print(f"  Total samples: {len(sample_set)}")
+    print(f"  Diversity ratio: {len(unique_samples)/len(sample_set):.2%}")
+    
+    # Log results
+    expert_judgment_str = "Yes" if result['label'] == 1 else "No"
+    log_results(expert_judgment_str, mi_score, len(sample_set), len(unique_samples), len(unique_samples)/len(sample_set))
+    
+    return mi_score, sample_set
+
+
+def test_independence_scenario():
+    """Test confidence estimation for independence detection."""
+    print("\n" + "="*80)
+    print("TEST 2: Independence Detection")
+    print("Scenario: Height and Reading Ability (Age as confounder)")
+    print("="*80)
+    
+    log_test_header(2, "Independence Detection", 
+                    "Height and Reading Ability (Age as confounder)")
+    
+    client = OnlineLLMClient(
+        api_key="sk-fnUHDzxXAimEnYgyX20Jag",
+        base_url="https://llmapi.paratera.com/v1/",
+        model_name="Qwen3-Next-80B-A3B-Thinking",
+        max_tokens=800,
+        temperature=0.7
+    )
+    
+    confidence_estimator = create_confidence_estimator(
+        client=client,
+        k_samples=8,
+        n_sequence_length=3,
+    )
+    
+    all_variables = ["Height", "Reading Ability", "Age"]
+    expert = IndependenceExpert(
+        base_prompt="",
+        x1="Height",
+        x2="Reading Ability",
+        client=client,
+        all_variables=all_variables,
+        expert_type="statistical",
+        after_blocking=False
+    )
+    expert.base_prompt = expert.generate_question()
+    
+    log_expert_config(expert, all_variables)
+    
+    print(f"\nQuestion: Are {expert.x1} and {expert.x2} independent?")
+    print(f"Variables: {all_variables}")
+    print(f"Expert Type: {expert.expert_type}")
+    
+    print("\n" + "-"*80)
+    print("Generating sample sequences...")
+    print("-"*80)
+    
+    sample_set = []
+    for i in range(confidence_estimator.k_samples):
+        prompts_and_responses = []
+        history_responses = []
+        
+        for j in range(confidence_estimator.n_sequence_length):
+            prompt = confidence_estimator.build_iterative_prompt(expert.base_prompt, history_responses)
+            response = client.chat(prompt, seed=__import__('random').randint(0, 1e6))
+            response_text = response.content if hasattr(response, 'content') else str(response)
+            label = __import__('utils').extract_yes_no_from_response(response_text)
+            
+            prompts_and_responses.append((prompt, response_text, label))
+            history_responses.append(response_text)
+        
+        sample = tuple([p[2] for p in prompts_and_responses])
+        sample_set.append(sample)
+        sample_str = " → ".join(["Yes" if s == 1 else "No" for s in sample])
+        print(f"Sample {i+1:2d}: {sample} = [{sample_str}]")
+        log_sample_sequence(i+1, sample, prompts_and_responses)
+    
+    mi_score = confidence_estimator.compute_mutual_information(sample_set)
+    result = expert.judge()
+    
+    print("\n" + "-"*80)
+    print("RESULTS:")
+    print("-"*80)
+    print(f"Expert Judgment: {'Yes (Independent)' if result['label'] == 1 else 'No (Not Independent)'}")
+    print(f"Epistemic Uncertainty (MI): {mi_score:.6f}")
+    
+    unique_samples = set(sample_set)
+    print(f"\nSample Diversity:")
+    print(f"  Unique patterns: {len(unique_samples)}")
+    print(f"  Diversity ratio: {len(unique_samples)/len(sample_set):.2%}")
+    
+    expert_judgment_str = "Yes (Independent)" if result['label'] == 1 else "No (Not Independent)"
+    log_results(expert_judgment_str, mi_score, len(sample_set), len(unique_samples), len(unique_samples)/len(sample_set))
+    
+    return mi_score, sample_set
+
+
+def test_causal_direction_clear():
+    """Test confidence estimation for clear causal direction."""
+    print("\n" + "="*80)
+    print("TEST 3: Causal Direction - Clear Case")
+    print("Scenario: Smoking → Lung Cancer (well-established)")
+    print("="*80)
+    
+    log_test_header(3, "Causal Direction - Clear Case", 
+                    "Smoking → Lung Cancer (well-established)")
+    
+    client = OnlineLLMClient(
+        api_key="sk-fnUHDzxXAimEnYgyX20Jag",
+        base_url="https://llmapi.paratera.com/v1/",
+        model_name="Qwen3-Next-80B-A3B-Thinking",
+        max_tokens=800,
+        temperature=0.7
+    )
+    
+    confidence_estimator = create_confidence_estimator(
+        client=client,
+        k_samples=8,
+        n_sequence_length=3,
+    )
+    
+    all_variables = ["Smoking", "Lung Cancer", "Age"]
+    expert = CausalDirectionExpert(
+        base_prompt="",
+        x1="Smoking",
+        x2="Lung Cancer",
+        client=client,
+        all_variables=all_variables,
+        expert_type="domain_knowledge",
+        after_blocking=False
+    )
+    expert.base_prompt = expert.generate_question()
+    
+    log_expert_config(expert, all_variables)
+    
+    print(f"\nQuestion: Does {expert.x1} cause {expert.x2}?")
+    print(f"Variables: {all_variables}")
+    print(f"Expert Type: {expert.expert_type}")
+    
+    print("\n" + "-"*80)
+    print("Generating sample sequences...")
+    print("-"*80)
+    
+    sample_set = []
+    for i in range(confidence_estimator.k_samples):
+        prompts_and_responses = []
+        history_responses = []
+        
+        for j in range(confidence_estimator.n_sequence_length):
+            prompt = confidence_estimator.build_iterative_prompt(expert.base_prompt, history_responses)
+            response = client.chat(prompt, seed=__import__('random').randint(0, 1e6))
+            response_text = response.content if hasattr(response, 'content') else str(response)
+            label = __import__('utils').extract_yes_no_from_response(response_text)
+            
+            prompts_and_responses.append((prompt, response_text, label))
+            history_responses.append(response_text)
+        
+        sample = tuple([p[2] for p in prompts_and_responses])
+        sample_set.append(sample)
+        sample_str = " → ".join(["Yes" if s == 1 else "No" for s in sample])
+        print(f"Sample {i+1:2d}: {sample} = [{sample_str}]")
+        log_sample_sequence(i+1, sample, prompts_and_responses)
+    
+    mi_score = confidence_estimator.compute_mutual_information(sample_set)
+    result = expert.judge()
+    
+    print("\n" + "-"*80)
+    print("RESULTS:")
+    print("-"*80)
+    print(f"Expert Judgment: {'Yes (X causes Y)' if result['label'] == 1 else 'No'}")
+    print(f"Epistemic Uncertainty (MI): {mi_score:.6f}")
+    
+    unique_samples = set(sample_set)
+    print(f"\nSample Diversity:")
+    print(f"  Unique patterns: {len(unique_samples)}")
+    print(f"  Diversity ratio: {len(unique_samples)/len(sample_set):.2%}")
+    
+    expert_judgment_str = "Yes (X causes Y)" if result['label'] == 1 else "No"
+    log_results(expert_judgment_str, mi_score, len(sample_set), len(unique_samples), len(unique_samples)/len(sample_set))
+    
+    return mi_score, sample_set
+
+
+def test_causal_direction_spurious():
+    """Test confidence estimation for spurious correlation."""
+    print("\n" + "="*80)
+    print("TEST 4: Causal Direction - Spurious Case")
+    print("Scenario: Rooster Crowing → Sunrise (obvious non-causation)")
+    print("="*80)
+    
+    log_test_header(4, "Causal Direction - Spurious Case", 
+                    "Rooster Crowing → Sunrise (obvious non-causation)")
+    
+    client = OnlineLLMClient(
+        api_key="sk-fnUHDzxXAimEnYgyX20Jag",
+        base_url="https://llmapi.paratera.com/v1/",
+        model_name="Qwen3-Next-80B-A3B-Thinking",
+        max_tokens=800,
+        temperature=0.7
+    )
+    
+    confidence_estimator = create_confidence_estimator(
+        client=client,
+        k_samples=8,
+        n_sequence_length=3,
+    )
+    
+    all_variables = ["Rooster Crowing", "Sunrise", "Time of Day"]
+    expert = CausalDirectionExpert(
+        base_prompt="",
+        x1="Rooster Crowing",
+        x2="Sunrise",
+        client=client,
+        all_variables=all_variables,
+        expert_type="temporal_dynamics",
+        after_blocking=False
+    )
+    expert.base_prompt = expert.generate_question()
+    
+    log_expert_config(expert, all_variables)
+    
+    print(f"\nQuestion: Does {expert.x1} cause {expert.x2}?")
+    print(f"Variables: {all_variables}")
+    print(f"Expert Type: {expert.expert_type}")
+    
+    print("\n" + "-"*80)
+    print("Generating sample sequences...")
+    print("-"*80)
+    
+    sample_set = []
+    for i in range(confidence_estimator.k_samples):
+        prompts_and_responses = []
+        history_responses = []
+        
+        for j in range(confidence_estimator.n_sequence_length):
+            prompt = confidence_estimator.build_iterative_prompt(expert.base_prompt, history_responses)
+            response = client.chat(prompt, seed=__import__('random').randint(0, 1e6))
+            response_text = response.content if hasattr(response, 'content') else str(response)
+            label = __import__('utils').extract_yes_no_from_response(response_text)
+            
+            prompts_and_responses.append((prompt, response_text, label))
+            history_responses.append(response_text)
+        
+        sample = tuple([p[2] for p in prompts_and_responses])
+        sample_set.append(sample)
+        sample_str = " → ".join(["Yes" if s == 1 else "No" for s in sample])
+        print(f"Sample {i+1:2d}: {sample} = [{sample_str}]")
+        log_sample_sequence(i+1, sample, prompts_and_responses)
+    
+    mi_score = confidence_estimator.compute_mutual_information(sample_set)
+    result = expert.judge()
+    
+    print("\n" + "-"*80)
+    print("RESULTS:")
+    print("-"*80)
+    print(f"Expert Judgment: {'Yes (X causes Y)' if result['label'] == 1 else 'No'}")
+    print(f"Epistemic Uncertainty (MI): {mi_score:.6f}")
+    
+    unique_samples = set(sample_set)
+    print(f"\nSample Diversity:")
+    print(f"  Unique patterns: {len(unique_samples)}")
+    print(f"  Diversity ratio: {len(unique_samples)/len(sample_set):.2%}")
+    
+    expert_judgment_str = "Yes (X causes Y)" if result['label'] == 1 else "No"
+    log_results(expert_judgment_str, mi_score, len(sample_set), len(unique_samples), len(unique_samples)/len(sample_set))
+    
+    return mi_score, sample_set
+
+
+def test_latent_confounder():
+    """Test confidence estimation for latent confounder detection."""
+    print("\n" + "="*80)
+    print("TEST 5: Latent Confounder Detection")
+    print("Scenario: Exercise and Weight Loss (Motivation as hidden confounder)")
+    print("="*80)
+    
+    log_test_header(5, "Latent Confounder Detection", 
+                    "Exercise and Weight Loss (Motivation as hidden confounder)")
+    
+    client = OnlineLLMClient(
+        api_key="sk-fnUHDzxXAimEnYgyX20Jag",
+        base_url="https://llmapi.paratera.com/v1/",
+        model_name="Qwen3-Next-80B-A3B-Thinking",
+        max_tokens=800,
+        temperature=0.7
+    )
+    
+    confidence_estimator = create_confidence_estimator(
+        client=client,
+        k_samples=8,
+        n_sequence_length=3,
+    )
+    
+    all_variables = ["Exercise", "Weight Loss", "Diet"]
+    expert = LatentConfounderExpert(
+        base_prompt="",
+        x1="Exercise",
+        x2="Weight Loss",
+        client=client,
+        all_variables=all_variables,
+        expert_type="domain_knowledge",
+        after_blocking=False
+    )
+    expert.base_prompt = expert.generate_question()
+    
+    log_expert_config(expert, all_variables)
+    
+    print(f"\nQuestion: Is there a hidden variable affecting both {expert.x1} and {expert.x2}?")
+    print(f"Variables: {all_variables}")
+    print(f"Expert Type: {expert.expert_type}")
+    
+    print("\n" + "-"*80)
+    print("Generating sample sequences...")
+    print("-"*80)
+    
+    sample_set = []
+    for i in range(confidence_estimator.k_samples):
+        prompts_and_responses = []
+        history_responses = []
+        
+        for j in range(confidence_estimator.n_sequence_length):
+            prompt = confidence_estimator.build_iterative_prompt(expert.base_prompt, history_responses)
+            response = client.chat(prompt, seed=__import__('random').randint(0, 1e6))
+            response_text = response.content if hasattr(response, 'content') else str(response)
+            label = __import__('utils').extract_yes_no_from_response(response_text)
+            
+            prompts_and_responses.append((prompt, response_text, label))
+            history_responses.append(response_text)
+        
+        sample = tuple([p[2] for p in prompts_and_responses])
+        sample_set.append(sample)
+        sample_str = " → ".join(["Yes" if s == 1 else "No" for s in sample])
+        print(f"Sample {i+1:2d}: {sample} = [{sample_str}]")
+        log_sample_sequence(i+1, sample, prompts_and_responses)
+    
+    mi_score = confidence_estimator.compute_mutual_information(sample_set)
+    result = expert.judge()
+    
+    print("\n" + "-"*80)
+    print("RESULTS:")
+    print("-"*80)
+    print(f"Expert Judgment: {'Yes (Latent confounder exists)' if result['label'] == 1 else 'No'}")
+    print(f"Epistemic Uncertainty (MI): {mi_score:.6f}")
+    
+    unique_samples = set(sample_set)
+    print(f"\nSample Diversity:")
+    print(f"  Unique patterns: {len(unique_samples)}")
+    print(f"  Diversity ratio: {len(unique_samples)/len(sample_set):.2%}")
+    
+    expert_judgment_str = "Yes (Latent confounder exists)" if result['label'] == 1 else "No"
+    log_results(expert_judgment_str, mi_score, len(sample_set), len(unique_samples), len(unique_samples)/len(sample_set))
+    
+    return mi_score, sample_set
+
+
+def main():
+    """Run all confidence estimation tests."""
+    print("\n" + "#"*80)
+    print("# CONFIDENCE ESTIMATOR TEST SUITE")
+    print("# Testing Multiple Causal Expert Situations with Sample Sequences")
+    print("#"*80)
+    
+    # Initialize log file
+    log_filename = init_log_file()
+    print(f"\nLog file created: {log_filename}")
+    
+    results = []
+    
+    try:
+        # Test 1: Backdoor path
+        mi1, samples1 = test_backdoor_path_scenario()
+        results.append(("Backdoor Path Detection", mi1, samples1))
+        
+        # Test 2: Independence
+        mi2, samples2 = test_independence_scenario()
+        results.append(("Independence Detection", mi2, samples2))
+        
+        # Test 3: Clear causation
+        mi3, samples3 = test_causal_direction_clear()
+        results.append(("Causal Direction (Clear)", mi3, samples3))
+        
+        # Test 4: Spurious correlation
+        mi4, samples4 = test_causal_direction_spurious()
+        results.append(("Causal Direction (Spurious)", mi4, samples4))
+        
+        # Test 5: Latent confounder
+        mi5, samples5 = test_latent_confounder()
+        results.append(("Latent Confounder", mi5, samples5))
+        
+        # Summary
+        print("\n" + "="*80)
+        print("SUMMARY: Confidence Comparison Across All Scenarios")
+        print("="*80)
+        
+        for i, (scenario, mi, samples) in enumerate(results, 1):
+            print(f"\n{i}. {scenario}")
+            print(f"   Epistemic Uncertainty (MI): {mi:.6f}")
+            print(f"   Unique patterns: {len(set(samples))}/{len(samples)}")
+            
+            # Interpretation
+            if mi < 0.05:
+                interpretation = "Very High Confidence (Very Low Uncertainty)"
+            elif mi < 0.15:
+                interpretation = "High Confidence (Low Uncertainty)"
+            elif mi < 0.30:
+                interpretation = "Moderate Confidence"
+            else:
+                interpretation = "Low Confidence (High Uncertainty)"
+            
+            print(f"   Interpretation: {interpretation}")
+        
+        print("\n" + "="*80)
+        print("KEY INSIGHTS:")
+        print("="*80)
+        print("• Lower MI score → More consistent responses → Higher confidence")
+        print("• Higher MI score → More varied responses → Lower confidence")
+        print("• Sample sequences show iterative prompting effect")
+        print("• Diversity ratio indicates response variability")
+        
+        print("\n" + "#"*80)
+        print("# ✓ ALL TESTS COMPLETED SUCCESSFULLY")
+        print("#"*80)
+        print(f"\nAll results logged to: {log_filename}")
+        
+    except KeyboardInterrupt:
+        print("\n\n" + "="*80)
+        print("Tests interrupted by user")
+        print("="*80)
+        print(f"\nPartial results logged to: {log_filename}")
+    except Exception as e:
+        print(f"\n{'='*80}")
+        print(f"ERROR: {e}")
+        print("="*80)
+        import traceback
+        traceback.print_exc()
+        print(f"\nResults up to error logged to: {log_filename}")
+    finally:
+        # Close log file
+        close_log_file()
+        print(f"\nLog file closed: {log_filename}")
+
+
+if __name__ == "__main__":
+    setup_logging(level="INFO")
+    main()
