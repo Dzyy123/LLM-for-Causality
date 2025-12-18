@@ -177,7 +177,7 @@ def sample_original_answers(executor: LLMRequestExecutor, question: str, k_sampl
     return answers
 
 
-class AdversarialGenerator:
+class AdversaryGenerator:
     """Generates adversarial arguments."""
     
     def __init__(self, executor: LLMRequestExecutor, prompt_builder: PromptBuilder, max_workers: int = 10):
@@ -483,7 +483,7 @@ class AdversarialConfidenceEstimator:
         self.seed_manager = SeedManager(seed)
         self.prompt_builder = PromptBuilder()
         self.executor = LLMRequestExecutor(client, self.seed_manager, max_workers)
-        self.adversarial_generator = AdversarialGenerator(self.executor, self.prompt_builder, max_workers)
+        self.adversarial_generator = AdversaryGenerator(self.executor, self.prompt_builder, max_workers)
         self.adversarial_sampler = AdversarySampler(self.executor, self.prompt_builder, max_workers)
         self.metrics_calculator = MetricsCalculator(gamma1, gamma2, weights)
     
