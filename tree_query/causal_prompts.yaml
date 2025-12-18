@@ -172,8 +172,8 @@ prompts:
 
     **Important**: Only write the expert names separated by commas, nothing else.
 
-# Distractor Confidence Estimator Prompts
-distractor_prompts:
+# Adversarial Confidence Estimator Prompts
+adversarial_prompts:
   contrarian: |
     You are a contrarian debater. Your task is to argue AGAINST the following answer and prove that the OPPOSITE conclusion is correct.
 
@@ -207,7 +207,7 @@ distractor_prompts:
     {separator}
     Consider the following critical perspective:
 
-    {distractor_argument}
+    {adversarial_argument}
 
     {separator}
 
@@ -221,7 +221,7 @@ distractor_prompts:
     {separator}
     Consider the following evidence-based perspective:
 
-    {distractor_argument}
+    {adversarial_argument}
 
     {separator}
 
@@ -235,7 +235,7 @@ distractor_prompts:
     {separator}
     Consider the following strong opinion:
 
-    {distractor_argument}
+    {adversarial_argument}
 
     {separator}
 

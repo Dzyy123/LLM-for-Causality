@@ -1,8 +1,8 @@
-# 基于干扰器的置信度估计方法
+# 基于对抗性论证的置信度估计方法
 
 ## 概述
 
-本文档描述了用于因果推理框架的基于干扰器（Distractor）的置信度估计方法。该方法通过生成对抗性的干扰论点来测试 LLM 答案的鲁棒性，从而评估其置信度。
+本文档描述了用于因果推理框架的基于对抗性论证（Adversarial）的置信度估计方法。该方法通过生成对抗性的论点来测试 LLM 答案的鲁棒性，从而评估其置信度。
 
 ## 1. 方法原理
 
@@ -11,15 +11,15 @@
 通过以下步骤评估 LLM 对某个因果判断的置信度：
 
 1. **原始采样**：对同一问题进行多次采样，获取初始答案分布
-2. **干扰生成**：为每个原始答案生成对抗性的干扰论点
-3. **干扰测试**：在干扰论点影响下重新采样，观察答案是否被翻转
-4. **置信度计算**：基于答案的鲁棒性（抗干扰能力）计算置信度分数
+2. **对抗性论证生成**：为每个原始答案生成对抗性的论点
+3. **对抗性测试**：在对抗性论点影响下重新采样，观察答案是否被翻转
+4. **置信度计算**：基于答案的鲁棒性（抗对抗能力）计算置信度分数
 
-### 1.2 干扰类型
+### 1.2 对抗性论证类型
 
-系统使用三种类型的干扰器：
+系统使用三种类型的对抗性论证：
 
-| 干扰类型 | 英文名称 | 描述 | 权重 $\lambda_i$ |
+| 对抗类型 | 英文名称 | 描述 | 权重 $\lambda_i$ |
 |---------|---------|------|-----------------|
 | 反驳者 | Contrarian | 逻辑辩论者，使用逻辑反驳原答案 | $\lambda_1 = 0.25$ |
 | 欺骗者 | Deceiver | 引用虚假权威文献支持相反结论 | $\lambda_2 = 0.25$ |
@@ -43,9 +43,9 @@ $$
 | $k_2$ | 每个原始答案生成的干扰集数量 |
 | $A_i$ | 第 $i$ 个原始答案，$i \in \{1, 2, \ldots, k_1\}$ |
 | $\ell_i$ | 第 $i$ 个原始答案的标签（0 或 1） |
-| $D_{i,j}^{(t)}$ | 第 $i$ 个原始答案的第 $j$ 个干扰集的第 $t$ 类干扰论点 |
-| $\tilde{A}_{i,j}^{(t)}$ | 在干扰 $D_{i,j}^{(t)}$ 影响下的重新采样答案 |
-| $\tilde{\ell}_{i,j}^{(t)}$ | 干扰后答案的标签（0 或 1） |
+| $D_{i,j}^{(t)}$ | 第 $i$ 个原始答案的第 $j$ 个对抗集的第 $t$ 类对抗性论点 |
+| $\tilde{A}_{i,j}^{(t)}$ | 在对抗性论点 $D_{i,j}^{(t)}$ 影响下的重新采样答案 |
+| $\tilde{\ell}_{i,j}^{(t)}$ | 对抗性影响后答案的标签（0 或 1） |
 
 ### 2.2 原始答案采样
 
@@ -215,13 +215,13 @@ $$
   p₀ʳᵃʷ = max(yes_count, no_count) / k₁
   p₀ = 2 × p₀ʳᵃʷ - 1
 
-步骤 3: 生成干扰集
+步骤 3: 生成对抗性论证集
   对 i = 1 到 k₁:
     对 j = 1 到 k₂:
       对 t ∈ {c, d, h}:
-        Dᵢ,ⱼ⁽ᵗ⁾ = generate_distractor(Aᵢ, ℓᵢ, t)
+        Dᵢ,ⱼ⁽ᵗ⁾ = generate_adversarial(Aᵢ, ℓᵢ, t)
 
-步骤 4: 干扰后重新采样
+步骤 4: 对抗性影响后重新采样
   对 i = 1 到 k₁:
     对 j = 1 到 k₂:
       对 t ∈ {c, d, h}:
@@ -232,7 +232,7 @@ $$
   对 t ∈ {c, d, h}:
     fₜ = (1 / k₁k₂) × Σᵢ Σⱼ 𝟙[ℓ̃ᵢ,ⱼ⁽ᵗ⁾ ≠ ℓᵢ]
 
-步骤 6: 计算抗干扰概率
+步骤 6: 计算抗对抗概率
   p₁ = 1 - f_c
   p₂ = 1 - f_d
   p₃ = 1 - f_h
@@ -250,8 +250,8 @@ $$
 为提高效率，算法在以下环节使用多线程并行执行：
 
 1. **原始答案采样**：$k_1$ 个请求并行
-2. **干扰论点生成**：$k_1 \times k_2 \times 3$ 个请求并行
-3. **干扰后重新采样**：$k_1 \times k_2 \times 3$ 个请求并行
+2. **对抗性论点生成**：$k_1 \times k_2 \times 3$ 个请求并行
+3. **对抗性影响后重新采样**：$k_1 \times k_2 \times 3$ 个请求并行
 
 **并行参数**：`max_workers`（默认 10-15 个线程）
 
@@ -259,12 +259,12 @@ $$
 
 ### 4.1 核心类
 
-#### 4.1.1 DistractorConfidenceEstimator
+#### 4.1.1 AdversarialConfidenceEstimator
 
 主估计器类，协调所有组件：
 
 ```python
-class DistractorConfidenceEstimator:
+class AdversarialConfidenceEstimator:
     def __init__(
         self,
         client: Union[LocalLLMClient, OnlineLLMClient],
@@ -279,7 +279,7 @@ class DistractorConfidenceEstimator:
 **参数说明**：
 - `client`：LLM 客户端（本地或在线）
 - `k1_samples`：原始答案采样数 $k_1$
-- `k2_samples`：每个原始答案的干扰集数 $k_2$
+- `k2_samples`：每个原始答案的对抗集数 $k_2$
 - `seed`：随机种子（用于可复现性）
 - `max_workers`：最大线程数
 - `weights`：权重元组 $(\lambda_1, \lambda_2, \lambda_3)$，需满足 $\sum \lambda_i = 1$
@@ -312,7 +312,7 @@ class MetricsCalculator:
 
 ```python
 from llm_utils import OnlineLLMClient
-from tree_query import create_distractor_confidence_estimator
+from tree_query import create_adversarial_confidence_estimator
 
 # 创建 LLM 客户端
 client = OnlineLLMClient(
@@ -322,10 +322,10 @@ client = OnlineLLMClient(
 )
 
 # 创建置信度估计器
-estimator = create_distractor_confidence_estimator(
+estimator = create_adversarial_confidence_estimator(
     client=client,
     k1_samples=20,      # 采样 20 个原始答案
-    k2_samples=2,       # 每个原始答案生成 2 个干扰集
+    k2_samples=2,       # 每个原始答案生成 2 个对抗集
     seed=42,            # 随机种子
     max_workers=15,     # 15 个并行线程
     weights=(0.25, 0.25, 0.5)  # 权重分配
@@ -344,7 +344,7 @@ print(f"翻转率: {result['flip_rates']}")
 
 ### 5.1 完全一致的情况
 
-**条件**：所有原始答案完全一致（$p_0^{\text{raw}} = 1.0$）且所有干扰都未翻转答案（$f_c = f_d = f_h = 0$）
+**条件**：所有原始答案完全一致（$p_0^{\text{raw}} = 1.0$）且所有对抗性论证都未翻转答案（$f_c = f_d = f_h = 0$）
 
 $$
 p_0 = 1.0, \quad p_1 = p_2 = p_3 = 1.0
@@ -510,14 +510,14 @@ $$
 
 | 方法 | 需要内部访问 | 对抗性测试 | 可解释性 | 计算成本 |
 |------|------------|----------|---------|---------|
-| **Distractor-based** | ❌ 否 | ✅ 强 | ✅ 高 | 中-高 |
+| **Adversary-based** | ❌ 否 | ✅ 强 | ✅ 高 | 中-高 |
 | Token 概率 | ✅ 是 | ❌ 无 | ✅ 高 | 低 |
 | 自洽性 | ❌ 否 | ❌ 无 | ✅ 中 | 中 |
 | 集成方法 | ❌ 否 | ❌ 无 | ❌ 低 | 高 |
 
 ## 10. 总结
 
-基于干扰器的置信度估计方法通过以下数学框架评估 LLM 答案的可靠性：
+基于对抗性论证的置信度估计方法通过以下数学框架评估 LLM 答案的可靠性：
 
 $$
 C = p_0 \cdot \left(1 - \sum_{i=1}^{3} \lambda_i \cdot \frac{|p_i - p_0|}{p_0}\right)
@@ -525,7 +525,7 @@ $$
 
 其中：
 - $p_0 = 2 \cdot p_0^{\text{raw}} - 1$ 反映初始答案的一致性
-- $p_i = 1 - f_i$ 反映对第 $i$ 种干扰的抗性
+- $p_i = 1 - f_i$ 反映对第 $i$ 种对抗性论证的抗性
 - $\lambda_i$ 是权重，满足 $\sum_{i=1}^{3} \lambda_i = 1$
 
 该方法具有以下特点：
@@ -538,6 +538,6 @@ $$
 
 ---
 
-**参考实现**：`tree_query/distractor_confidence_estimator.py`
+**参考实现**：`tree_query/adversarial_confidence_estimator.py`
 
 **生成日期**：2025年12月13日

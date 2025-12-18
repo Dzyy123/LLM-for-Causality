@@ -1,9 +1,9 @@
 """
-Distractor Confidence Estimator Module (Version 2 - Simplified)
+Adversarial Confidence Estimator Module (Version 2 - Simplified)
 
-Version 2: Uses only Yes/No conclusion (without full explanation) in distracted sampling prompts.
+Version 2: Uses only Yes/No conclusion (without full explanation) in adversarially-influenced sampling prompts.
 This version differs from v1 by providing only the conclusion
-(not the complete original answer text) when presenting distractors for re-evaluation.
+(not the complete original answer text) when presenting adversarial arguments for re-evaluation.
 
 Uses multi-threading for parallel LLM requests and modular design.
 """
@@ -31,29 +31,29 @@ class OriginalAnswer:
 
 
 @dataclass
-class DistractorArgument:
-    """Container for a single distractor argument."""
+class AdversaryArgument:
+    """Container for a single adversary argument."""
     dtype: str
     prompt: str
     argument: str
 
 
 @dataclass
-class DistractorSet:
-    """Container for a complete set of distractor arguments."""
+class AdversarySet:
+    """Container for a complete set of adversary arguments."""
     set_index: int
     original_answer: str
     original_label: int
-    contrarian: DistractorArgument
-    deceiver: DistractorArgument
-    hater: DistractorArgument
+    contrarian: AdversaryArgument
+    deceiver: AdversaryArgument
+    hater: AdversaryArgument
 
 
 @dataclass
-class DistractedSample:
-    """Container for a distracted sample result."""
+class AdversarySample:
+    """Container for an adversarially-influenced sample result."""
     set_index: int
-    distractor_type: str
+    adversarial_type: str
     original_label: int
     sampling_prompt: str
     response: str
@@ -77,21 +77,21 @@ class SeedManager:
 
 
 class PromptBuilder:
-    """Builds prompts for distractor generation and sampling."""
+    """Builds prompts for adversarial generation and sampling."""
     
     def __init__(self):
         config = get_config()
-        self.contrarian_template = config.get_distractor_prompt('contrarian')
-        self.deceiver_template = config.get_distractor_prompt('deceiver')
-        self.hater_template = config.get_distractor_prompt('hater')
-        self.single_contrarian_template = config.get_distractor_prompt('single_contrarian_template')
-        self.single_deceiver_template = config.get_distractor_prompt('single_deceiver_template')
-        self.single_hater_template = config.get_distractor_prompt('single_hater_template')
+        self.contrarian_template = config.get_adversarial_prompt('contrarian')
+        self.deceiver_template = config.get_adversarial_prompt('deceiver')
+        self.hater_template = config.get_adversarial_prompt('hater')
+        self.single_contrarian_template = config.get_adversarial_prompt('single_contrarian_template')
+        self.single_deceiver_template = config.get_adversarial_prompt('single_deceiver_template')
+        self.single_hater_template = config.get_adversarial_prompt('single_hater_template')
     
     def build_generation_prompt(self, dtype: str, question: str, 
                                 answer: str, conclusion: str, 
                                 opposite_conclusion: str) -> str:
-        """Build prompt for generating distractor argument."""
+        """Build prompt for generating adversarial argument."""
         template_map = {
             'contrarian': self.contrarian_template,
             'deceiver': self.deceiver_template,
@@ -107,8 +107,8 @@ class PromptBuilder:
     
     def build_sampling_prompt(self, dtype: str, question: str, 
                              original_label: int, 
-                             distractor_argument: str) -> str:
-        """Build prompt for sampling with distractor."""
+                             adversarial_argument: str) -> str:
+        """Build prompt for sampling with adversarial argument."""
         template_map = {
             'contrarian': self.single_contrarian_template,
             'deceiver': self.single_deceiver_template,
@@ -119,7 +119,7 @@ class PromptBuilder:
         return template.format(
             question=question,
             separator="",
-            distractor_argument=distractor_argument,
+            adversarial_argument=adversarial_argument,
             original_conclusion=original_conclusion
         )
 
@@ -175,8 +175,8 @@ def sample_original_answers(executor: LLMRequestExecutor, question: str, k_sampl
     return answers
 
 
-class DistractorGenerator:
-    """Generates distractor arguments."""
+class AdversaryGenerator:
+    """Generates adversarial arguments."""
     
     def __init__(self, executor: LLMRequestExecutor, prompt_builder: PromptBuilder, max_workers: int = 10):
         self.executor = executor
@@ -184,8 +184,8 @@ class DistractorGenerator:
         self.max_workers = max_workers
     
     def generate_single_set(self, question: str, original_answer: str, 
-                           original_label: int) -> Tuple[DistractorArgument, DistractorArgument, DistractorArgument]:
-        """Generate one complete set of three distractors in parallel."""
+                           original_label: int) -> Tuple[AdversaryArgument, AdversaryArgument, AdversaryArgument]:
+        """Generate one complete set of three adversarial arguments in parallel."""
         conclusion = "Yes" if original_label == 1 else "No"
         opposite_conclusion = "No" if original_label == 1 else "Yes"
         
@@ -200,27 +200,27 @@ class DistractorGenerator:
         # Execute in parallel
         results = self.executor.execute_parallel(prompts, max_workers=3)
         
-        # Build DistractorArgument objects
-        distractor_map = {}
+        # Build AdversaryArgument objects
+        adversarial_map = {}
         for dtype, argument in results:
             # Find the prompt used
             prompt = next(p for dt, p in prompts if dt == dtype)
-            distractor_map[dtype] = DistractorArgument(
+            adversarial_map[dtype] = AdversaryArgument(
                 dtype=dtype,
                 prompt=prompt,
                 argument=argument
             )
         
-        return (distractor_map['contrarian'], 
-                distractor_map['deceiver'], 
-                distractor_map['hater'])
+        return (adversarial_map['contrarian'], 
+                adversarial_map['deceiver'], 
+                adversarial_map['hater'])
     
     def generate_all_sets(self, question: str, 
                          original_answers: List[OriginalAnswer],
-                         k2_samples: int) -> List[DistractorSet]:
-        """Generate all distractor sets (k1 × k2 sets) in parallel."""
+                         k2_samples: int) -> List[AdversarySet]:
+        """Generate all adversarial sets (k1 × k2 sets) in parallel."""
         total_sets = len(original_answers) * k2_samples
-        logger.info(f"Generating {total_sets} distractor sets")
+        logger.info(f"Generating {total_sets} adversarial sets")
         
         # Build task list
         tasks = []
@@ -236,7 +236,7 @@ class DistractorGenerator:
                 set_index += 1
         
         # Execute with thread pool
-        distractor_sets = []
+        adversarial_sets = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_task = {
                 executor.submit(
@@ -251,7 +251,7 @@ class DistractorGenerator:
                 set_idx, orig_text, orig_label, _ = task
                 contrarian, deceiver, hater = future.result()
                 
-                distractor_sets.append(DistractorSet(
+                adversarial_sets.append(AdversarySet(
                     set_index=set_idx,
                     original_answer=orig_text,
                     original_label=orig_label,
@@ -261,60 +261,60 @@ class DistractorGenerator:
                 ))
         
         # Sort by set_index to maintain order
-        distractor_sets.sort(key=lambda x: x.set_index)
-        logger.info(f"Completed {len(distractor_sets)} distractor sets")
-        return distractor_sets
+        adversarial_sets.sort(key=lambda x: x.set_index)
+        logger.info(f"Completed {len(adversarial_sets)} adversarial sets")
+        return adversarial_sets
 
 
-class DistractedSampler:
-    """Samples answers after presenting distractors."""
+class AdversarySampler:
+    """Samples answers after presenting adversarial arguments."""
     
     def __init__(self, executor: LLMRequestExecutor, prompt_builder: PromptBuilder, max_workers: int = 15):
         self.executor = executor
         self.prompt_builder = prompt_builder
         self.max_workers = max_workers
     
-    def sample_with_distractor(self, question: str, distractor_set: DistractorSet,
-                               dtype: str) -> DistractedSample:
-        """Sample with one distractor type."""
-        distractor = getattr(distractor_set, dtype)
+    def sample_with_adversarial(self, question: str, adversarial_set: AdversarySet,
+                               dtype: str) -> AdversarySample:
+        """Sample with one adversarial type."""
+        adversarial = getattr(adversarial_set, dtype)
         
         # Build sampling prompt
         sampling_prompt = self.prompt_builder.build_sampling_prompt(
-            dtype, question, distractor_set.original_label, distractor.argument
+            dtype, question, adversarial_set.original_label, adversarial.argument
         )
         
         # Execute request
         response = self.executor.execute_single(sampling_prompt)
         label = extract_yes_no_from_response(response)
         
-        return DistractedSample(
-            set_index=distractor_set.set_index,
-            distractor_type=dtype,
-            original_label=distractor_set.original_label,
+        return AdversarySample(
+            set_index=adversarial_set.set_index,
+            adversarial_type=dtype,
+            original_label=adversarial_set.original_label,
             sampling_prompt=sampling_prompt,
             response=response,
             label=label
         )
     
     def sample_all(self, question: str, 
-                   distractor_sets: List[DistractorSet]) -> List[DistractedSample]:
-        """Sample with all distractors (k1 × k2 × 3 samples) in parallel."""
-        total_samples = len(distractor_sets) * 3
-        logger.info(f"Sampling {total_samples} distracted responses")
+                   adversarial_sets: List[AdversarySet]) -> List[AdversarySample]:
+        """Sample with all adversarial arguments (k1 × k2 × 3 samples) in parallel."""
+        total_samples = len(adversarial_sets) * 3
+        logger.info(f"Sampling {total_samples} adversarially-influenced responses")
         
         # Build task list
         tasks = []
-        for dset in distractor_sets:
+        for aset in adversarial_sets:
             for dtype in ['contrarian', 'deceiver', 'hater']:
-                tasks.append((question, dset, dtype))
+                tasks.append((question, aset, dtype))
         
         # Execute in parallel
         samples = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_task = {
                 executor.submit(
-                    self.sample_with_distractor,
+                    self.sample_with_adversarial,
                     task[0], task[1], task[2]
                 ): task
                 for task in tasks
@@ -324,9 +324,9 @@ class DistractedSampler:
                 sample = future.result()
                 samples.append(sample)
         
-        # Sort by set_index and distractor_type
-        samples.sort(key=lambda x: (x.set_index, x.distractor_type))
-        logger.info(f"Completed {len(samples)} distracted responses")
+        # Sort by set_index and adversarial_type
+        samples.sort(key=lambda x: (x.set_index, x.adversarial_type))
+        logger.info(f"Completed {len(samples)} adversarially-influenced responses")
         return samples
 
 
@@ -338,17 +338,17 @@ class MetricsCalculator:
         self.gamma2 = gamma2
     
     def compute_flip_rate(self, original_result: int, 
-                         distracted_results: List[int]) -> float:
-        """Compute flip rate for one distractor type."""
-        if not distracted_results:
+                         adversarial_results: List[int]) -> float:
+        """Compute flip rate for one adversarial type."""
+        if not adversarial_results:
             return 0.0
-        flips = sum(1 for r in distracted_results if r != original_result)
-        return flips / len(distracted_results)
+        flips = sum(1 for r in adversarial_results if r != original_result)
+        return flips / len(adversarial_results)
     
-    def compute_label_distribution(self, distracted_results: List[int]) -> Dict[str, int]:
+    def compute_label_distribution(self, adversarial_results: List[int]) -> Dict[str, int]:
         """Compute Yes/No distribution."""
-        yes_count = sum(1 for r in distracted_results if r == 1)
-        no_count = len(distracted_results) - yes_count
+        yes_count = sum(1 for r in adversarial_results if r == 1)
+        no_count = len(adversarial_results) - yes_count
         return {'yes': yes_count, 'no': no_count}
     
     def compute_confidence_score(self, p0: float, p1: float, 
@@ -364,11 +364,11 @@ class MetricsCalculator:
         return max(0.0, confidence)
     
     def calculate_all_metrics(self, expert_result: int,
-                             distracted_samples: List[DistractedSample]) -> Dict[str, Any]:
+                             adversarial_samples: List[AdversarySample]) -> Dict[str, Any]:
         """Calculate all confidence metrics."""
         # Build detailed tracking: group by set_index to show each original answer's journey
         detailed_tracking = {}
-        for sample in distracted_samples:
+        for sample in adversarial_samples:
             if sample.set_index not in detailed_tracking:
                 detailed_tracking[sample.set_index] = {
                     'original_label': sample.original_label,
@@ -376,17 +376,17 @@ class MetricsCalculator:
                     'deceiver': None,
                     'hater': None
                 }
-            detailed_tracking[sample.set_index][sample.distractor_type] = sample.label
+            detailed_tracking[sample.set_index][sample.adversarial_type] = sample.label
         
-        # Calculate flip rates and label distributions based on EACH distractor set's original label
-        # Group samples by distractor type for proper flip rate calculation
+        # Calculate flip rates and label distributions based on EACH adversarial set's original label
+        # Group samples by adversarial type for proper flip rate calculation
         flip_rates = {}
         label_distributions = {}
         
         for dtype in ['contrarian', 'deceiver', 'hater']:
-            type_samples = [s for s in distracted_samples if s.distractor_type == dtype]
+            type_samples = [s for s in adversarial_samples if s.adversarial_type == dtype]
             
-            # Calculate flip rate: compare each distracted result with its OWN original label
+            # Calculate flip rate: compare each adversarially-influenced result with its OWN original label
             total_flips = sum(1 for s in type_samples if s.label != s.original_label)
             flip_rates[dtype] = total_flips / len(type_samples) if type_samples else 0.0
             
@@ -420,11 +420,11 @@ class MetricsCalculator:
         }
 
 
-class DistractorConfidenceEstimatorV2:
+class AdversarialConfidenceEstimatorV2:
     """
     Main estimator class coordinating all components (Version 2 - Simplified).
     Uses multi-threading for parallel LLM requests.
-    V2: Uses only Yes/No conclusion without full explanation in distracted sampling.
+    V2: Uses only Yes/No conclusion without full explanation in adversarially-influenced sampling.
     """
     
     def __init__(self, client: Union[LocalLLMClient, OnlineLLMClient],
@@ -437,7 +437,7 @@ class DistractorConfidenceEstimatorV2:
         Args:
             client: LLM client for requests
             k1_samples: Number of original answer samples
-            k2_samples: Number of distractor sets per original answer
+            k2_samples: Number of adversarial sets per original answer
             gamma1: Stabilization parameter for numerator
             gamma2: Stabilization parameter for denominator
             seed: Random seed (auto-increments per request)
@@ -452,13 +452,13 @@ class DistractorConfidenceEstimatorV2:
         self.seed_manager = SeedManager(seed)
         self.prompt_builder = PromptBuilder()
         self.executor = LLMRequestExecutor(client, self.seed_manager, max_workers)
-        self.distractor_generator = DistractorGenerator(self.executor, self.prompt_builder, max_workers)
-        self.distracted_sampler = DistractedSampler(self.executor, self.prompt_builder, max_workers)
+        self.adversarial_generator = AdversaryGenerator(self.executor, self.prompt_builder, max_workers)
+        self.adversarial_sampler = AdversarySampler(self.executor, self.prompt_builder, max_workers)
         self.metrics_calculator = MetricsCalculator(gamma1, gamma2)
     
     def estimate_confidence(self, expert, result: int) -> Dict[str, Any]:
         """
-        Estimate confidence score with distractor-based testing (V2: Yes/No only).
+        Estimate confidence score with adversary-based testing (V2: Yes/No only).
         
         Args:
             expert: Expert instance with base_prompt
@@ -476,20 +476,20 @@ class DistractorConfidenceEstimatorV2:
         # Step 1: Sample original answers
         original_answers = sample_original_answers(self.executor, question, self.k1_samples)
         
-        # Step 2: Generate distractor sets
-        distractor_sets = self.distractor_generator.generate_all_sets(
+        # Step 2: Generate adversarial sets
+        adversarial_sets = self.adversarial_generator.generate_all_sets(
             question, original_answers, self.k2_samples
         )
         
-        # Step 3: Sample with distractors
-        distracted_samples = self.distracted_sampler.sample_all(
-            question, distractor_sets
+        # Step 3: Sample with adversarial arguments
+        adversarial_samples = self.adversarial_sampler.sample_all(
+            question, adversarial_sets
         )
         
         # Step 4: Calculate metrics
         logger.info("Calculating metrics")
         metrics = self.metrics_calculator.calculate_all_metrics(
-            result, distracted_samples
+            result, adversarial_samples
         )
         
         logger.info(f"Confidence: {metrics['confidence_score']:.4f}, Robustness: {metrics['robustness_score']:.2%}")
@@ -503,19 +503,19 @@ class DistractorConfidenceEstimatorV2:
             'k2_samples': self.k2_samples,
             'total_samples': self.k1_samples * self.k2_samples * 3,
             'original_answers': original_answers,
-            'distractor_sets': distractor_sets,
-            'distracted_samples': distracted_samples
+            'adversarial_sets': adversarial_sets,
+            'adversarial_samples': adversarial_samples
         }
 
 
-def create_distractor_confidence_estimator_v2(
+def create_adversarial_confidence_estimator_v2(
     client: Union[LocalLLMClient, OnlineLLMClient],
     k1_samples: int = 50, k2_samples: int = 1,
     gamma1: float = 1e-6, gamma2: float = 1e-6,
     seed: int = None, max_workers: int = 10
-) -> DistractorConfidenceEstimatorV2:
+) -> AdversarialConfidenceEstimatorV2:
     """Factory function to create estimator V2."""
-    return DistractorConfidenceEstimatorV2(
+    return AdversarialConfidenceEstimatorV2(
         client=client,
         k1_samples=k1_samples,
         k2_samples=k2_samples,

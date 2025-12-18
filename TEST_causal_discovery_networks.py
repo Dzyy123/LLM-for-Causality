@@ -90,88 +90,88 @@ class CausalDiscoveryReportWriter:
                         self.file.write(f"**Response:**\n\n")
                         self.file.write(f"```\n{response}\n```\n\n")
                 
-                # Write distractor confidence estimation details
+                # Write adversarial confidence estimation details
                 confidence_details = step_result.get('confidence_details')
                 if confidence_details:
-                    self._write_distractor_details(confidence_details)
+                    self._write_adversarial_details(confidence_details)
         
         self.flush()
     
-    def _write_distractor_details(self, confidence_details: Dict[str, Any]):
-        """Write detailed distractor sets and distracted responses."""
+    def _write_adversarial_details(self, confidence_details: Dict[str, Any]):
+        """Write detailed adversarial sets and adversarially-influenced responses."""
         if not confidence_details:
             return
         
-        self.file.write("**Distractor-Based Confidence Estimation Details:**\n\n")
+        self.file.write("**Adversarial Confidence Estimation Details:**\n\n")
         
         # Write summary metrics
         self.file.write(f"- **Confidence Score:** {confidence_details.get('confidence_score', 0.0):.4f}\n")
         self.file.write(f"- **Robustness Score:** {confidence_details.get('robustness_score', 0.0):.2%}\n")
         self.file.write(f"- **K1 Samples:** {confidence_details.get('k1_samples', 'N/A')}\n")
         self.file.write(f"- **K2 Samples:** {confidence_details.get('k2_samples', 'N/A')}\n")
-        self.file.write(f"- **Total Distracted Samples:** {confidence_details.get('total_samples', 'N/A')}\n\n")
+        self.file.write(f"- **Total Adversarial Samples:** {confidence_details.get('total_samples', 'N/A')}\n\n")
         
         # Write flip rates
         flip_rates = confidence_details.get('flip_rates', {})
         if flip_rates:
-            self.file.write("**Flip Rates by Distractor Type:**\n\n")
-            self.file.write("| Distractor Type | Flip Rate |\n")
+            self.file.write("**Flip Rates by Adversary Type:**\n\n")
+            self.file.write("| Adversary Type | Flip Rate |\n")
             self.file.write("|-----------------|----------|\n")
             for dtype, rate in flip_rates.items():
                 self.file.write(f"| {dtype} | {rate:.2%} |\n")
             self.file.write("\n")
         
-        # Write distractor sets
-        distractor_sets = confidence_details.get('distractor_sets', [])
-        if distractor_sets:
-            self.file.write(f"**Distractor Sets ({len(distractor_sets)} sets):**\n\n")
+        # Write adversarial sets
+        adversarial_sets = confidence_details.get('adversarial_sets', [])
+        if adversarial_sets:
+            self.file.write(f"**Adversarial Sets ({len(adversarial_sets)} sets):**\n\n")
             
-            for i, dset in enumerate(distractor_sets[:5], 1):  # Limit to first 5 for brevity
+            for i, aset in enumerate(adversarial_sets[:5], 1):  # Limit to first 5 for brevity
                 self.prompt_counter += 1
-                self.file.write(f"<details>\n<summary>[{self.prompt_counter}] Distractor Set {dset.set_index + 1} (Original Label: {'Yes' if dset.original_label == 1 else 'No'})</summary>\n\n")
+                self.file.write(f"<details>\n<summary>[{self.prompt_counter}] Adversary Set {aset.set_index + 1} (Original Label: {'Yes' if aset.original_label == 1 else 'No'})</summary>\n\n")
                 
                 # Original answer
-                self.file.write(f"**Original Answer:**\n\n```\n{dset.original_answer[:500]}{'...' if len(dset.original_answer) > 500 else ''}\n```\n\n")
+                self.file.write(f"**Original Answer:**\n\n```\n{aset.original_answer[:500]}{'...' if len(aset.original_answer) > 500 else ''}\n```\n\n")
                 
-                # Contrarian distractor
-                self.file.write(f"**Contrarian Distractor:**\n\n")
-                self.file.write(f"*Generation Prompt:*\n```\n{dset.contrarian.prompt[:300]}{'...' if len(dset.contrarian.prompt) > 300 else ''}\n```\n\n")
-                self.file.write(f"*Generated Argument:*\n```\n{dset.contrarian.argument[:500]}{'...' if len(dset.contrarian.argument) > 500 else ''}\n```\n\n")
+                # Contrarian adversary
+                self.file.write(f"**Contrarian Adversary:**\n\n")
+                self.file.write(f"*Generation Prompt:*\n```\n{aset.contrarian.prompt[:300]}{'...' if len(aset.contrarian.prompt) > 300 else ''}\n```\n\n")
+                self.file.write(f"*Generated Argument:*\n```\n{aset.contrarian.argument[:500]}{'...' if len(aset.contrarian.argument) > 500 else ''}\n```\n\n")
                 
-                # Deceiver distractor
-                self.file.write(f"**Deceiver Distractor:**\n\n")
-                self.file.write(f"*Generation Prompt:*\n```\n{dset.deceiver.prompt[:300]}{'...' if len(dset.deceiver.prompt) > 300 else ''}\n```\n\n")
-                self.file.write(f"*Generated Argument:*\n```\n{dset.deceiver.argument[:500]}{'...' if len(dset.deceiver.argument) > 500 else ''}\n```\n\n")
+                # Deceiver adversary
+                self.file.write(f"**Deceiver Adversary:**\n\n")
+                self.file.write(f"*Generation Prompt:*\n```\n{aset.deceiver.prompt[:300]}{'...' if len(aset.deceiver.prompt) > 300 else ''}\n```\n\n")
+                self.file.write(f"*Generated Argument:*\n```\n{aset.deceiver.argument[:500]}{'...' if len(aset.deceiver.argument) > 500 else ''}\n```\n\n")
                 
-                # Hater distractor
-                self.file.write(f"**Hater Distractor:**\n\n")
-                self.file.write(f"*Generation Prompt:*\n```\n{dset.hater.prompt[:300]}{'...' if len(dset.hater.prompt) > 300 else ''}\n```\n\n")
-                self.file.write(f"*Generated Argument:*\n```\n{dset.hater.argument[:500]}{'...' if len(dset.hater.argument) > 500 else ''}\n```\n\n")
+                # Hater adversary
+                self.file.write(f"**Hater Adversary:**\n\n")
+                self.file.write(f"*Generation Prompt:*\n```\n{aset.hater.prompt[:300]}{'...' if len(aset.hater.prompt) > 300 else ''}\n```\n\n")
+                self.file.write(f"*Generated Argument:*\n```\n{aset.hater.argument[:500]}{'...' if len(aset.hater.argument) > 500 else ''}\n```\n\n")
                 
                 self.file.write("</details>\n\n")
             
-        # Write distracted samples
-        distracted_samples = confidence_details.get('distracted_samples', [])
-        if distracted_samples:
-            self.file.write(f"**Distracted Responses ({len(distracted_samples)} samples):**\n\n")
+        # Write adversary samples
+        adversarial_samples = confidence_details.get('adversarial_samples', [])
+        if adversarial_samples:
+            self.file.write(f"**Adversarially-Influenced Responses ({len(adversarial_samples)} samples):**\n\n")
             
             # Summary table
-            self.file.write("| Set | Type | Original | Distracted | Flipped |\n")
-            self.file.write("|-----|------|----------|------------|--------|\n")
+            self.file.write("| Set | Type | Original | Adversary | Flipped |\n")
+            self.file.write("|-----|------|----------|-------------|--------|\n")
             
-            for sample in distracted_samples[:15]:  # Limit to first 15
+            for sample in adversarial_samples[:15]:  # Limit to first 15
                 orig_label = 'Yes' if sample.original_label == 1 else 'No'
-                dist_label = 'Yes' if sample.label == 1 else 'No'
+                adv_label = 'Yes' if sample.label == 1 else 'No'
                 flipped = '✓' if sample.label != sample.original_label else ''
-                self.file.write(f"| {sample.set_index + 1} | {sample.distractor_type} | {orig_label} | {dist_label} | {flipped} |\n")
+                self.file.write(f"| {sample.set_index + 1} | {sample.adversarial_type} | {orig_label} | {adv_label} | {flipped} |\n")
             
             self.file.write("\n")
             
-            # Detailed distracted samples (first 3)
-            self.file.write("**Sample Distracted Response Details:**\n\n")
-            for sample in distracted_samples[:3]:
+            # Detailed adversarial samples (first 3)
+            self.file.write("**Sample Adversarially-Influenced Response Details:**\n\n")
+            for sample in adversarial_samples[:3]:
                 self.prompt_counter += 1
-                self.file.write(f"<details>\n<summary>[{self.prompt_counter}] Set {sample.set_index + 1} - {sample.distractor_type} (Result: {'Yes' if sample.label == 1 else 'No'})</summary>\n\n")
+                self.file.write(f"<details>\n<summary>[{self.prompt_counter}] Set {sample.set_index + 1} - {sample.adversarial_type} (Result: {'Yes' if sample.label == 1 else 'No'})</summary>\n\n")
                 self.file.write(f"**Sampling Prompt:**\n\n```\n{sample.sampling_prompt}\n```\n\n")
                 self.file.write(f"**Response:**\n\n```\n{sample.response}\n```\n\n")
                 self.file.write("</details>\n\n")
@@ -392,10 +392,10 @@ class CausalDiscoveryReportWriter:
                         self.file.write(f"**Response:**\n\n")
                         self.file.write(f"```\n{response}\n```\n\n")
                 
-                # Write distractor confidence estimation details
+                # Write adversarial confidence estimation details
                 confidence_details = step_result.get('confidence_details')
                 if confidence_details:
-                    self._write_distractor_details(confidence_details)
+                    self._write_adversarial_details(confidence_details)
         
         self.flush()
     

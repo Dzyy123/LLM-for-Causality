@@ -26,10 +26,9 @@ def load_config(config_path: str = None) -> Dict[str, Any]:
         New code should use config_loader.get_config() instead.
     """
     if config_path is None:
-        # Default to causal_prompts.yaml in the parent directory (project root)
+        # Default to causal_prompts.yaml in the tree_query directory
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(current_dir)
-        config_path = os.path.join(parent_dir, 'causal_prompts.yaml')
+        config_path = os.path.join(current_dir, 'causal_prompts.yaml')
     
     with open(config_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)

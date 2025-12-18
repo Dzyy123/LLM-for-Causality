@@ -4,7 +4,7 @@ Tree Query Package for Causal Discovery
 This package provides a comprehensive framework for causal discovery using:
 - Tree-based causal inference logic
 - MoE (Mixture of Experts) architecture
-- Distractor-based confidence estimation
+- Adversarial confidence estimation
 - Multi-calibration for probability adjustment
 
 Example:
@@ -38,9 +38,9 @@ from tree_query.experts import (
 from tree_query.expert_router import ExpertRouter
 
 # Confidence estimation
-from tree_query.distractor_confidence_estimator import (
-    DistractorConfidenceEstimator,
-    create_distractor_confidence_estimator,
+from tree_query.adversarial_confidence_estimator import (
+    AdversarialConfidenceEstimator,
+    create_adversarial_confidence_estimator,
 )
 
 # Configuration
@@ -49,10 +49,10 @@ from tree_query.config_loader import (
     get_config,
     get_expert_config,
     get_prompt_template,
-    get_distractor_prompt,
+    get_adversarial_prompt,
     get_routing_rule,
     format_prompt,
-    format_distractor_prompt,
+    format_adversarial_prompt,
 )
 
 # Utilities
@@ -74,17 +74,17 @@ __all__ = [
     # Router
     "ExpertRouter",
     # Confidence
-    "DistractorConfidenceEstimator",
-    "create_distractor_confidence_estimator",
+    "AdversarialConfidenceEstimator",
+    "create_adversarial_confidence_estimator",
     # Config
     "CausalPromptsConfig",
     "get_config",
     "get_expert_config",
     "get_prompt_template",
-    "get_distractor_prompt",
+    "get_adversarial_prompt",
     "get_routing_rule",
     "format_prompt",
-    "format_distractor_prompt",
+    "format_adversarial_prompt",
     # Utils
     "load_config",
     "extract_yes_no_from_response",

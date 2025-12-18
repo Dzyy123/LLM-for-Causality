@@ -1,15 +1,15 @@
 """
-Causal Discovery Framework with Distractor-Based Confidence Estimation
+Causal Discovery Framework with Adversarial-Based Confidence Estimation
 
 A comprehensive framework for causal discovery that integrates:
 - Tree-based causal inference logic
 - MoE (Mixture of Experts) architecture
-- Distractor-based confidence estimation
+- Adversary-based confidence estimation
 - Multi-calibration for probability adjustment
 - Prior and posterior causal graph generation
 
 This replaces the method-based confidence (frequency/probability/logit) with
-the more robust DistractorConfidenceEstimator.
+the more robust AdversarialConfidenceEstimator.
 """
 
 import logging
@@ -23,7 +23,7 @@ from tree_query.experts import (
     LatentConfounderExpert, 
     CausalDirectionExpert
 )
-from tree_query.distractor_confidence_estimator import create_distractor_confidence_estimator
+from tree_query.adversarial_confidence_estimator import create_adversarial_confidence_estimator
 from tree_query.expert_router import ExpertRouter
 from tree_query.utils import aggregate_expert_results
 from tree_query.config_loader import get_config
@@ -35,12 +35,12 @@ logger = logging.getLogger(__name__)
 
 class CausalDiscoveryFramework:
     """
-    Main framework orchestrating causal discovery with distractor-based confidence.
+    Main framework orchestrating causal discovery with adversary-based confidence.
     
     Architecture:
     1. Tree-based query logic for systematic causal relationship determination
     2. MoE expert routing for diverse perspectives
-    3. Distractor-based confidence estimation for robustness
+    3. Adversary-based confidence estimation for robustness
     4. Multi-calibration for probability refinement
     """
     
@@ -61,7 +61,7 @@ class CausalDiscoveryFramework:
             client: LLM client for experts and confidence estimation
             all_variables: List of all variables in the causal system
             k1_samples: Number of original answer samples for confidence estimation
-            k2_samples: Number of distractor sets per original answer
+            k2_samples: Number of adversarial sets per original answer
             seed: Random seed for reproducibility
             max_workers: Maximum number of threads for parallel LLM requests
             trust_confidence: Confidence threshold (0-1) to trust a result without
@@ -77,8 +77,8 @@ class CausalDiscoveryFramework:
         self.trust_confidence = trust_confidence
         self.seed = seed
         
-        # Initialize distractor-based confidence estimator
-        self.confidence_estimator = create_distractor_confidence_estimator(
+        # Initialize adversary-based confidence estimator
+        self.confidence_estimator = create_adversarial_confidence_estimator(
             client=client,
             k1_samples=k1_samples,
             k2_samples=k2_samples,
@@ -98,7 +98,7 @@ class CausalDiscoveryFramework:
         x2: str
     ) -> Dict[str, Any]:
         """
-        Run expert judgment with distractor-based confidence estimation.
+        Run expert judgment with adversary-based confidence estimation.
         
         Args:
             expert_class: The expert class to use
@@ -154,7 +154,7 @@ class CausalDiscoveryFramework:
         aggregated = aggregate_expert_results(expert_results)
         final_label = aggregated["label"]
         
-        # Estimate confidence using distractor-based approach
+        # Estimate confidence using adversary-based approach
         # Use the first successful expert for confidence estimation
         representative_expert = expert_class(
             base_prompt="",
@@ -183,7 +183,7 @@ class CausalDiscoveryFramework:
             "label": final_label,
             "confidence": confidence_score,
             "expert_results": expert_results,
-            "confidence_details": confidence_result  # Include full distractor data
+            "confidence_details": confidence_result  # Include full adversarial data
         }
     
     def check_backdoor_path(self, x1: str, x2: str) -> Dict[str, Any]:

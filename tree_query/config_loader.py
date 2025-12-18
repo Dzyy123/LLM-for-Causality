@@ -18,7 +18,7 @@ class CausalPromptsConfig:
     This class provides convenient access to:
     - Expert definitions (capabilities, specialties, reasoning styles)
     - Routing rules (which experts to use for different question types)
-    - Prompt templates (for expert analysis and distractor generation)
+    - Prompt templates (for expert analysis and adversarial generation)
     """
     
     def __init__(self, config_path: Optional[str] = None):
@@ -30,10 +30,9 @@ class CausalPromptsConfig:
                         If None, uses default 'causal_prompts.yaml' in parent directory.
         """
         if config_path is None:
-            # Default to causal_prompts.yaml in the parent directory (project root)
+            # Default to causal_prompts.yaml in the tree_query directory
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            parent_dir = os.path.dirname(current_dir)
-            config_path = os.path.join(parent_dir, 'causal_prompts.yaml')
+            config_path = os.path.join(current_dir, 'causal_prompts.yaml')
         
         self.config_path = config_path
         self.config = self._load_config()
@@ -141,43 +140,43 @@ class CausalPromptsConfig:
         template = self.get_prompt_template(prompt_type)
         return template.format(**kwargs)
     
-    # ===== Distractor Prompts =====
+    # ===== Adversarial Prompts =====
     
-    def get_distractor_prompt(self, distractor_type: str) -> str:
+    def get_adversarial_prompt(self, adversarial_type: str) -> str:
         """
-        Get a distractor prompt template.
+        Get an adversarial prompt template.
         
         Args:
-            distractor_type: Type of distractor ('contrarian', 'deceiver', 'hater', 
-                            'distracted_prompt_template')
+            adversarial_type: Type of adversarial argument ('contrarian', 'deceiver', 'hater', 
+                            'adversarial_prompt_template')
             
         Returns:
-            Distractor prompt template string
+            Adversarial prompt template string
         """
-        distractors = self.config.get('distractor_prompts', {})
-        if distractor_type not in distractors:
+        adversarials = self.config.get('adversarial_prompts', {})
+        if adversarial_type not in adversarials:
             raise ValueError(
-                f"Unknown distractor type: {distractor_type}\n"
-                f"Available distractors: {', '.join(distractors.keys())}"
+                f"Unknown adversarial type: {adversarial_type}\n"
+                f"Available adversarial types: {', '.join(adversarials.keys())}"
             )
-        return distractors[distractor_type]
+        return adversarials[adversarial_type]
     
-    def get_all_distractor_prompts(self) -> Dict[str, str]:
-        """Get all distractor prompt templates."""
-        return self.config.get('distractor_prompts', {})
+    def get_all_adversarial_prompts(self) -> Dict[str, str]:
+        """Get all adversarial prompt templates."""
+        return self.config.get('adversarial_prompts', {})
     
-    def format_distractor_prompt(self, distractor_type: str, **kwargs) -> str:
+    def format_adversarial_prompt(self, adversarial_type: str, **kwargs) -> str:
         """
-        Get and format a distractor prompt template.
+        Get and format an adversarial prompt template.
         
         Args:
-            distractor_type: Type of distractor prompt
+            adversarial_type: Type of adversarial prompt
             **kwargs: Values to substitute into the template
             
         Returns:
-            Formatted distractor prompt string
+            Formatted adversarial prompt string
         """
-        template = self.get_distractor_prompt(distractor_type)
+        template = self.get_adversarial_prompt(adversarial_type)
         return template.format(**kwargs)
     
     # ===== Utility Methods =====
@@ -229,9 +228,9 @@ def get_prompt_template(prompt_type: str) -> str:
     return get_config().get_prompt_template(prompt_type)
 
 
-def get_distractor_prompt(distractor_type: str) -> str:
-    """Get distractor prompt template (convenience function)."""
-    return get_config().get_distractor_prompt(distractor_type)
+def get_adversarial_prompt(adversarial_type: str) -> str:
+    """Get adversarial prompt template (convenience function)."""
+    return get_config().get_adversarial_prompt(adversarial_type)
 
 
 def get_routing_rule(question_type: str) -> List[str]:
@@ -244,6 +243,6 @@ def format_prompt(prompt_type: str, **kwargs) -> str:
     return get_config().format_prompt(prompt_type, **kwargs)
 
 
-def format_distractor_prompt(distractor_type: str, **kwargs) -> str:
-    """Format a distractor prompt template (convenience function)."""
-    return get_config().format_distractor_prompt(distractor_type, **kwargs)
+def format_adversarial_prompt(adversarial_type: str, **kwargs) -> str:
+    """Format an adversarial prompt template (convenience function)."""
+    return get_config().format_adversarial_prompt(adversarial_type, **kwargs)
