@@ -11,6 +11,12 @@ from llm_utils.logging_config import get_logger
 from llm_utils.base_client import BaseLLMClient
 from llm_utils.data_types import LLMResponse, ChatMessage
 
+# Import report logger (use try/except to avoid circular imports)
+try:
+    from llm_utils.report_logger import get_report_logger
+except ImportError:
+    get_report_logger = None
+
 
 # Module-level logger
 logger = get_logger("online_client")
@@ -170,7 +176,7 @@ class OnlineLLMClient(BaseLLMClient):
         
         content = response.choices[0].message.content.strip()
         
-        return LLMResponse(
+        llm_response = LLMResponse(
             content=content,
             raw_response=response,
             metadata={
@@ -184,6 +190,26 @@ class OnlineLLMClient(BaseLLMClient):
                 }
             }
         )
+        
+        # Log to report if enabled
+        if get_report_logger is not None:
+            report_logger = get_report_logger()
+            if report_logger.enabled and report_logger.report_file is not None:
+                metadata = {
+                    "model": self.model_name,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                }
+                if seed is not None:
+                    metadata["seed"] = seed
+                report_logger.log_interaction(
+                    prompt=prompt,
+                    response=content,
+                    context=system_prompt if system_prompt else None,
+                    metadata=metadata
+                )
+        
+        return llm_response
     
     def chat_with_history(
         self,

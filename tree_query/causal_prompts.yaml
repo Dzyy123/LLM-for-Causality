@@ -7,49 +7,49 @@ experts:
     description: "Analyzes how variables connect and influence each other through pathways. Checks if there are blocked or open paths between variables using graph theory rules. Looks at the overall structure of relationships."
     specialty: "Finding paths between variables, detecting circular relationships, checking if paths are blocked"
     reasoning_style: "Step-by-step path exploration"
-    output_format: "Yes/No answer based on graph structure"
+    output_format: "Yes/No answer based on graph structure with very detailed reasoning"
   
   statistical:
     name: "Statistical Analysis Expert"
     description: "Uses statistical methods to determine if variables are related or independent. Examines correlations, tests independence, and identifies confounding factors that might create false relationships."
     specialty: "Testing independence, measuring correlations, finding confounders"
     reasoning_style: "Statistical evidence and probability"
-    output_format: "Yes/No answer based on statistical evidence"
+    output_format: "Yes/No answer based on statistical evidence with very detailed reasoning"
   
   domain_knowledge:
     name: "Domain Knowledge Expert"
     description: "Applies real-world knowledge and common sense to causal questions. Considers practical aspects like timing, physical laws, biological processes, and what makes sense in the real world."
     specialty: "Understanding mechanisms, checking time order, applying practical constraints"
     reasoning_style: "Common sense and scientific knowledge"
-    output_format: "Yes/No answer based on domain knowledge"
+    output_format: "Yes/No answer based on domain knowledge with very detailed reasoning"
   
   counterfactual:
     name: "What-If Scenario Expert"
     description: "Thinks about what would happen if we changed one variable. Imagines alternative scenarios and compares outcomes to understand cause-and-effect relationships."
     specialty: "Analyzing interventions, comparing what-if scenarios, testing causal effects"
     reasoning_style: "What-if thinking and scenario comparison"
-    output_format: "Yes/No answer based on intervention reasoning"
+    output_format: "Yes/No answer based on intervention reasoning with very detailed reasoning"
   
   temporal_dynamics:
     name: "Time Order Expert"
     description: "Focuses on the timing of events. Checks that causes happen before effects, considers delays between cause and effect, and examines how relationships evolve over time."
     specialty: "Checking time order, analyzing delays, studying changes over time"
     reasoning_style: "Timeline-based reasoning"
-    output_format: "Yes/No answer based on temporal order"
+    output_format: "Yes/No answer based on temporal order with very detailed reasoning"
   
   mechanism_modeling:
     name: "Mechanism Expert"
     description: "Looks for the step-by-step process explaining how one variable affects another. Identifies intermediate steps and examines whether the causal chain makes sense."
     specialty: "Finding intermediate steps, checking causal pathways, explaining how things work"
     reasoning_style: "Breaking down the mechanism"
-    output_format: "Yes/No answer based on mechanism clarity"
+    output_format: "Yes/No answer based on mechanism clarity with very detailed reasoning"
   
   robustness_analysis:
     name: "Robustness Expert"
     description: "Tests whether conclusions hold up under different conditions and assumptions. Checks if the relationship is stable or fragile by examining edge cases and alternative scenarios."
     specialty: "Testing stability, checking edge cases, validating assumptions"
     reasoning_style: "Multiple scenario testing"
-    output_format: "Yes/No answer based on stability assessment"
+    output_format: "Yes/No answer based on stability assessment with very detailed reasoning"
 
 # Routing Rules - which experts to consider for each question type
 routing_rules:
@@ -107,50 +107,50 @@ prompts:
     3. Consider all important factors in your area.
     4. Give a clear Yes or No answer.
 
-    Please analyze and directly answer Yes or No with very detailed explanations.
+    Please analyze and directly answer Yes or No with very detailed reasoning.
 
   backdoor_path: |
     Consider all variables in the system: {all_variables}
 
     Question: Is there a common cause, or a chain of influences, in the system that affects both {x1} and {x2}?
 
-    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+    Think through this step by step, then answer Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   independence_after_blocking: |
     Consider all variables in the system: {all_variables}
 
     Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, would they be independent now?
 
-    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+    Think through this step by step, then answer Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   independence: |
     Question: Are {x1} and {x2} completely independent?
 
-    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+    Think through this step by step, then answer Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   latent_confounder_after_blocking: |
     Consider all variables in the system: {all_variables}
 
     Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, is there still a hidden variable NOT in the system affecting both of them?
 
-    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+    Think through this step by step, then answer Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   latent_confounder: |
     Question: Is there a hidden variable that affects both {x1} and {x2}?
 
-    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+    Think through this step by step, then answer Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   causal_direction_after_blocking: |
     Consider all variables in the system: {all_variables}
 
     Question: If we assume that all variables in the system affecting both {x1} and {x2} have been controlled so that these variables no longer affect them, does {x1} cause {x2}?
 
-    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+    Think through this step by step, then answer Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   causal_direction: |
     Question: Does {x1} cause {x2}?
 
-    Think through this step by step, then answer Yes or No with very detailed explanations like "Answer: 'Yes'/'No'\n\nExplanations:\n'Your explanations here'".
+    Think through this step by step, then answer Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   clinic_router: |
     You are helping to choose the best experts for a causal analysis task.
@@ -204,6 +204,10 @@ adversarial_prompts:
   single_contrarian_template: |
     {question}
 
+    Your previous answer was:
+    
+    {original_conclusion}
+
     {separator}
     Consider the following critical perspective:
 
@@ -211,12 +215,14 @@ adversarial_prompts:
 
     {separator}
 
-    Your previous answer was: {original_conclusion}
-
-    Now consider the question again carefully. Does this critical analysis change your view? Provide your reasoning and conclude with a clear Yes or No.
+    Now consider the question again carefully. What is your opinion now? Provide a clear Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   single_deceiver_template: |
     {question}
+
+    Your previous answer was:
+    
+    {original_conclusion}
 
     {separator}
     Consider the following evidence-based perspective:
@@ -225,12 +231,14 @@ adversarial_prompts:
 
     {separator}
 
-    Your previous answer was: {original_conclusion}
-
-    Now consider the question again carefully. Does this authoritative evidence change your view? Provide your reasoning and conclude with a clear Yes or No.
+    Now consider the question again carefully. What is your opinion now? Provide a clear Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".
 
   single_hater_template: |
     {question}
+
+    Your previous answer was:
+    
+    {original_conclusion}
 
     {separator}
     Consider the following strong opinion:
@@ -239,6 +247,4 @@ adversarial_prompts:
 
     {separator}
 
-    Your previous answer was: {original_conclusion}
-
-    Now consider the question again carefully. Does this criticism change your view? Provide your reasoning and conclude with a clear Yes or No.
+    Now consider the question again carefully. What is your opinion now? Provide a clear Yes or No with very detailed reasoning like "Answer: 'Yes'/'No'\n\nReasoning:\n'Your reasoning here'".

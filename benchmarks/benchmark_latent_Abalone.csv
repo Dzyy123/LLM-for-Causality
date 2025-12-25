@@ -1,0 +1,22 @@
+var1,var2,relationship
+Height,Shucked weight,<->
+Height,Whole weight,<->
+Height,Length,<->
+Height,Diameter,<->
+Height,Shell weight,<->
+Height,Viscera weight,<->
+Length,Shucked weight,<->
+Length,Whole weight,<->
+Length,Diameter,<->
+Length,Shell weight,<->
+Length,Viscera weight,<->
+Viscera weight,Shucked weight,<->
+Viscera weight,Whole weight,<->
+Viscera weight,Diameter,<->
+Viscera weight,Shell weight,<->
+Diameter,Shucked weight,<->
+Diameter,Whole weight,<->
+Diameter,Shell weight,<->
+Shucked weight,Whole weight,<->
+Shucked weight,Shell weight,<->
+Whole weight,Shell weight,<->

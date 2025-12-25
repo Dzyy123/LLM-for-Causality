@@ -1,0 +1,4 @@
+var1,var2,relationship
+"Local CO2 flux, DE-Har","Local CO2 flux, BE-Bra",<->
+"Local CO2 flux, DE-Har","Local CO2 flux, US-PFa",<->
+"Local CO2 flux, US-PFa","Local CO2 flux, BE-Bra",<->

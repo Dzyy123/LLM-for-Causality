@@ -57,6 +57,13 @@ from llm_utils.factory import (
     create_llm_client,
 )
 
+from llm_utils.report_logger import (
+    ReportLogger,
+    get_report_logger,
+    set_report_logger,
+    enable_report_logging,
+)
+
 __all__ = [
     # Logging
     "setup_logging",
@@ -74,4 +81,9 @@ __all__ = [
     # Factory
     "LLMClientFactory",
     "create_llm_client",
+    # Report Logging
+    "ReportLogger",
+    "get_report_logger",
+    "set_report_logger",
+    "enable_report_logging",
 ]

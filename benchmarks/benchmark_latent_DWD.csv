@@ -1,0 +1,5 @@
+var1,var2,relationship
+Latitude,Temperature,->
+Precipitation,Sunshine hours,<->
+Precipitation,Temperature,<->
+Sunshine hours,Temperature,<->

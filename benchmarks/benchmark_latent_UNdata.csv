@@ -1,0 +1,32 @@
+var1,var2,relationship
+Drinking water access,Infant mortality,->
+Energy use,CO2 emissions,->
+"Female life expectancy, 1990-1995","Male life expectancy, 2000-2005",<->
+"Female life expectancy, 1990-1995","Female life expectancy, 1995-2000",<->
+"Female life expectancy, 1990-1995","Male life expectancy, 1995-2000",<->
+"Female life expectancy, 1990-1995","Male life expectancy, 1990-1995",<->
+"Female life expectancy, 1990-1995","Male life expectancy, 1985-1990",<->
+"Female life expectancy, 1990-1995","Female life expectancy, 1985-1990",<->
+"Female life expectancy, 1990-1995","Female life expectancy, 2000-2005",<->
+"Male life expectancy, 1985-1990","Male life expectancy, 2000-2005",<->
+"Male life expectancy, 1985-1990","Female life expectancy, 1995-2000",<->
+"Male life expectancy, 1985-1990","Male life expectancy, 1990-1995",<->
+"Male life expectancy, 1985-1990","Male life expectancy, 1995-2000",<->
+"Male life expectancy, 1985-1990","Female life expectancy, 1985-1990",<->
+"Male life expectancy, 1985-1990","Female life expectancy, 2000-2005",<->
+"Male life expectancy, 1990-1995","Male life expectancy, 2000-2005",<->
+"Male life expectancy, 1990-1995","Female life expectancy, 1995-2000",<->
+"Male life expectancy, 1990-1995","Male life expectancy, 1995-2000",<->
+"Male life expectancy, 1990-1995","Female life expectancy, 1985-1990",<->
+"Male life expectancy, 1990-1995","Female life expectancy, 2000-2005",<->
+"Female life expectancy, 1995-2000","Male life expectancy, 2000-2005",<->
+"Female life expectancy, 1995-2000","Male life expectancy, 1995-2000",<->
+"Female life expectancy, 1995-2000","Female life expectancy, 1985-1990",<->
+"Female life expectancy, 1995-2000","Female life expectancy, 2000-2005",<->
+"Female life expectancy, 1985-1990","Male life expectancy, 2000-2005",<->
+"Female life expectancy, 1985-1990","Male life expectancy, 1995-2000",<->
+"Female life expectancy, 1985-1990","Female life expectancy, 2000-2005",<->
+"Male life expectancy, 2000-2005","Male life expectancy, 1995-2000",<->
+"Male life expectancy, 2000-2005","Female life expectancy, 2000-2005",<->
+"Female life expectancy, 2000-2005","Male life expectancy, 1995-2000",<->
+Life expectancy,Under-5 mortality rate,<->

@@ -1,0 +1,4 @@
+var1,var2,relationship
+Stock return of Hang Seng Bank,Stock return of HSBC Hldgs,->
+Stock return of Hutchison,Stock return of Cheung kong,->
+Stock return of Cheung kong,Stock return of Sun Hung Kai Prop.,->

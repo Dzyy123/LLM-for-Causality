@@ -15,6 +15,8 @@ Example:
 import logging
 import sys
 from typing import Optional
+from rich.logging import RichHandler
+from rich.console import Console
 
 
 # Package-level logger name
@@ -22,11 +24,11 @@ LOGGER_NAME = "llm_utils"
 
 # Default logging formats
 # Concise format with date and time: MM-DD HH:MM:SS
-DEFAULT_FORMAT = "%(asctime)s [%(levelname)s] %(name)s - %(message)s"
+DEFAULT_FORMAT = "%(asctime)s %(name)s - %(message)s"
 # Detailed format with full timestamp
-DETAILED_FORMAT = "%(asctime)s [%(levelname)s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+DETAILED_FORMAT = "%(asctime)s %(name)s:%(funcName)s:%(lineno)d - %(message)s"
 # Simple format without timestamp (for cases where timestamps aren't needed)
-SIMPLE_FORMAT = "[%(levelname)s] %(name)s - %(message)s"
+SIMPLE_FORMAT = "%(name)s - %(message)s"
 
 # Default date format: concise month-day hour:minute:second
 DEFAULT_DATE_FORMAT = "%m-%d %H:%M:%S"
@@ -66,7 +68,7 @@ def setup_logging(
     Example:
         >>> # Basic setup with timestamps (default)
         >>> logger = setup_logging()
-        >>> # Output: 12-06 14:30:45 [INFO] module_name - Message
+        >>> # Output: 12-06 14:30:45 module_name - Message
         
         >>> # Debug level with detailed format
         >>> logger = setup_logging(level="DEBUG", use_detailed_format=True)
@@ -74,11 +76,11 @@ def setup_logging(
         
         >>> # Simple format without timestamps
         >>> logger = setup_logging(no_timestamps=True)
-        >>> # Output: [INFO] module_name - Message
+        >>> # Output: module_name - Message
         
         >>> # Custom date format with full year
         >>> logger = setup_logging(date_format="%Y-%m-%d %H:%M:%S")
-        >>> # Output: 2025-12-06 14:30:45 [INFO] module_name - Message
+        >>> # Output: 2025-12-06 14:30:45 module_name - Message
     """
     # Get the root logger to configure ALL modules
     root_logger = logging.getLogger()
@@ -106,9 +108,19 @@ def setup_logging(
     # Create formatter
     formatter = logging.Formatter(format_string, datefmt=date_format)
     
-    # Create stream handler
-    handler = logging.StreamHandler(stream or sys.stdout)
+    # Create rich handler with console output
+    console = Console(file=stream or sys.stdout, force_terminal=True)
+    handler = RichHandler(
+        console=console,
+        show_time=not no_timestamps,
+        show_level=True,
+        show_path=use_detailed_format,
+        markup=True,
+        rich_tracebacks=True,
+        tracebacks_show_locals=False
+    )
     handler.setLevel(log_level)
+    # Note: RichHandler formats its own output, but we set formatter for consistency
     handler.setFormatter(formatter)
     
     # Add handler to root logger (applies to all modules)
@@ -144,7 +156,7 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     Example:
         >>> logger = get_logger("online_client")
         >>> logger.info("Client initialized")
-        12-06 14:30:45 [INFO] llm_utils.online_client - Client initialized
+        12-06 14:30:45 llm_utils.online_client - Client initialized
     """
     if name:
         return logging.getLogger(f"{LOGGER_NAME}.{name}")

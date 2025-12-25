@@ -142,7 +142,7 @@ class TreeQueryTask(CausalInferenceTask):
             
         Returns:
             Dictionary with:
-                - relation: 'x->y', 'y->x', 'x<->y', or 'independent'
+                - relation: '->', '<-', '<->', or 'independent'
                 - log: Execution log with intermediate results
         """
         log = []
@@ -190,7 +190,7 @@ class TreeQueryTask(CausalInferenceTask):
             
             if res_latent["label"] == 1:
                 return {
-                    "relation": "x<->y",
+                    "relation": "<->",
                     "log": log
                 }
             
@@ -203,16 +203,16 @@ class TreeQueryTask(CausalInferenceTask):
                 x2,
                 after_blocking=True
             )
-            log.append(("x->y_after_block", res_dir))
+            log.append(("->_after_block", res_dir))
             
             if res_dir["label"] == 1:
                 return {
-                    "relation": "x->y",
+                    "relation": "->",
                     "log": log
                 }
             else:
                 return {
-                    "relation": "y->x",
+                    "relation": "<-",
                     "log": log
                 }
         
@@ -247,7 +247,7 @@ class TreeQueryTask(CausalInferenceTask):
             
             if res_latent["label"] == 1:
                 return {
-                    "relation": "x<->y",
+                    "relation": "<->",
                     "log": log
                 }
             
@@ -259,16 +259,16 @@ class TreeQueryTask(CausalInferenceTask):
                 x2,
                 after_blocking=False
             )
-            log.append(("x->y_no_backdoor", res_dir))
+            log.append(("->_no_backdoor", res_dir))
             
             if res_dir["label"] == 1:
                 return {
-                    "relation": "x->y",
+                    "relation": "->",
                     "log": log
                 }
             else:
                 return {
-                    "relation": "y->x",
+                    "relation": "<-",
                     "log": log
                 }
 

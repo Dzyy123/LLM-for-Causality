@@ -51,8 +51,7 @@ class CausalDiscoveryReportWriter:
         self.file.write("### Framework Parameters\n\n")
         self.file.write(f"- **Variables:** {', '.join(framework.all_variables)}\n")
         self.file.write(f"- **Trust Confidence:** {framework.trust_confidence}\n")
-        self.file.write(f"- **K1 Samples:** {framework.confidence_estimator.k1_samples}\n")
-        self.file.write(f"- **K2 Samples:** {framework.confidence_estimator.k2_samples}\n\n")
+        self.file.write(f"- **M Samples:** {framework.confidence_estimator.m_samples}\n\n")
         self.file.write("---\n\n")
         self.flush()
     
@@ -107,8 +106,7 @@ class CausalDiscoveryReportWriter:
         # Write summary metrics
         self.file.write(f"- **Confidence Score:** {confidence_details.get('confidence_score', 0.0):.4f}\n")
         self.file.write(f"- **Robustness Score:** {confidence_details.get('robustness_score', 0.0):.2%}\n")
-        self.file.write(f"- **K1 Samples:** {confidence_details.get('k1_samples', 'N/A')}\n")
-        self.file.write(f"- **K2 Samples:** {confidence_details.get('k2_samples', 'N/A')}\n")
+        self.file.write(f"- **M Samples:** {confidence_details.get('m_samples', 'N/A')}\n")
         self.file.write(f"- **Total Adversarial Samples:** {confidence_details.get('total_samples', 'N/A')}\n\n")
         
         # Write flip rates
@@ -542,8 +540,7 @@ def main():
     framework = CausalDiscoveryFramework(
         client=client,
         all_variables=variables,
-        k1_samples=10,
-        k2_samples=1,
+        m_samples=10,
         seed=42,
         max_workers=30,
         trust_confidence=0.75

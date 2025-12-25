@@ -1,0 +1,6 @@
+var1,var2,relationship
+Temperature at t,Temperature at t+1,->
+Pressure at t,Pressure at t+1,->
+Sea level pressure at t,Sea level pressure at t+1,->
+Relative humidity at t,Relative humidity at t+1,->
+"(Temp, Press, Slp, Rh)","(Temp, Press, SLP, Rh)",->

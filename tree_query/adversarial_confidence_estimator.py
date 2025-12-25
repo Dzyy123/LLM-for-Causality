@@ -13,6 +13,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
 from llm_utils import LocalLLMClient, OnlineLLMClient
+try:
+    from llm_utils.report_logger import get_report_logger
+except ImportError:
+    get_report_logger = None
+
 from tree_query.utils import extract_yes_no_from_response
 from tree_query.config_loader import get_config
 
@@ -218,24 +223,22 @@ class AdversaryGenerator:
                 adversarial_map['hater'])
     
     def generate_all_sets(self, question: str, 
-                         original_answers: List[OriginalAnswer],
-                         k2_samples: int) -> List[AdversarySet]:
-        """Generate all adversarial sets (k1 × k2 sets) in parallel."""
-        total_sets = len(original_answers) * k2_samples
+                         original_answers: List[OriginalAnswer]) -> List[AdversarySet]:
+        """Generate all adversarial sets (m sets, one per original answer) in parallel."""
+        total_sets = len(original_answers)
         logger.info(f"Generating {total_sets} adversarial sets")
         
         # Build task list
         tasks = []
         set_index = 0
         for orig_answer in original_answers:
-            for j in range(k2_samples):
-                tasks.append((
-                    set_index,
-                    orig_answer.text,
-                    orig_answer.label,
-                    question
-                ))
-                set_index += 1
+            tasks.append((
+                set_index,
+                orig_answer.text,
+                orig_answer.label,
+                question
+            ))
+            set_index += 1
         
         # Execute with thread pool
         adversarial_sets = []
@@ -302,7 +305,7 @@ class AdversarySampler:
     
     def sample_all(self, question: str, 
                    adversarial_sets: List[AdversarySet]) -> List[AdversarySample]:
-        """Sample with all adversarial arguments (k1 × k2 × 3 samples) in parallel."""
+        """Sample with all adversarial arguments (m × 3 samples) in parallel."""
         total_samples = len(adversarial_sets) * 3
         logger.info(f"Sampling {total_samples} adversarially-influenced responses")
         
@@ -337,18 +340,18 @@ class MetricsCalculator:
     """Calculates confidence metrics."""
     
     def __init__(self, gamma1: float = 1e-6, gamma2: float = 1e-6,
-                 weights: Tuple[float, float, float] = (1/4, 1/4, 1/2)):
+                 weights: Tuple[float, float, float] = (1/3, 1/3, 1/3)):
         self.gamma1 = gamma1
         self.gamma2 = gamma2
         self.weights = weights
     
-    def compute_flip_rate(self, original_result: int, 
-                         adversarial_results: List[int]) -> float:
-        """Compute flip rate for one adversarial type."""
+    def compute_majority_aligned_rate(self, majority_label: int, 
+                                      adversarial_results: List[int]) -> float:
+        """Compute proportion of results matching the majority label."""
         if not adversarial_results:
             return 0.0
-        flips = sum(1 for r in adversarial_results if r != original_result)
-        return flips / len(adversarial_results)
+        aligned = sum(1 for r in adversarial_results if r == majority_label)
+        return aligned / len(adversarial_results)
     
     def compute_label_distribution(self, adversarial_results: List[int]) -> Dict[str, int]:
         """Compute Yes/No distribution."""
@@ -357,19 +360,19 @@ class MetricsCalculator:
         return {'yes': yes_count, 'no': no_count}
     
     def compute_confidence_score(self, p0: float, p1: float, 
-                                 p2: float, p3: float) -> float:
+                                 p2: float, p3: float, p0_raw: float) -> float:
         """Compute final confidence score using weighted deviation formula."""
-        if p0 == 0:
+        if p0_raw == 0:
             return 0.0
         
         p_values = [p1, p2, p3]
         weighted_deviation_sum = 0.0
         for i, p_i in enumerate(p_values):
-            weighted_deviation_sum += self.weights[i] * abs(p_i - p0) / p0
+            weighted_deviation_sum += self.weights[i] * abs(p_i - p0_raw) / p0_raw
         
         confidence = p0 * (1 - weighted_deviation_sum)
         
-        return max(0.0, confidence)
+        return confidence
     
     def calculate_all_metrics(self, expert_result: int,
                              adversarial_samples: List[AdversarySample],
@@ -387,46 +390,61 @@ class MetricsCalculator:
                 }
             detailed_tracking[sample.set_index][sample.adversarial_type] = sample.label
         
-        # Calculate flip rates and label distributions based on EACH adversarial set's original label
-        # Group samples by adversarial type for proper flip rate calculation
-        flip_rates = {}
+        # Determine majority label from original answers
+        original_labels = [ans.label for ans in original_answers]
+        yes_count = sum(1 for label in original_labels if label == 1)
+        no_count = len(original_labels) - yes_count
+        
+        # Majority label y*
+        majority_label = 1 if yes_count >= no_count else 0
+        
+        # p0_raw is the proportion of the majority label (range: [0.5, 1])
+        p0_raw = max(yes_count, no_count) / len(original_labels) if original_labels else 1.0
+        
+        # Apply adjustment: p0 = p0_raw * 2 - 1 to map [0.5, 1] -> [0, 1]
+        p0 = p0_raw * 2 - 1
+        
+        # Calculate majority-aligned rates for each adversarial type
+        # p_j = proportion of adversarially-influenced conclusions that equal y*
+        majority_aligned_rates = {}
         label_distributions = {}
         
         for dtype in ['contrarian', 'deceiver', 'hater']:
             type_samples = [s for s in adversarial_samples if s.adversarial_type == dtype]
             
-            # Calculate flip rate: compare each adversarially-influenced result with its OWN original label
-            total_flips = sum(1 for s in type_samples if s.label != s.original_label)
-            flip_rates[dtype] = total_flips / len(type_samples) if type_samples else 0.0
+            # Calculate proportion of results matching the majority label
+            majority_aligned_rates[dtype] = self.compute_majority_aligned_rate(
+                majority_label, [s.label for s in type_samples]
+            )
             
             # Label distribution
             label_distributions[dtype] = self.compute_label_distribution([s.label for s in type_samples])
         
-        # Calculate p0: proportion of majority label in original answers
-        # Count labels in original answers
-        original_labels = [ans.label for ans in original_answers]
-        yes_count = sum(1 for label in original_labels if label == 1)
-        no_count = len(original_labels) - yes_count
+        # p_j values as defined in the paper
+        p1 = majority_aligned_rates['contrarian']
+        p2 = majority_aligned_rates['deceiver']
+        p3 = majority_aligned_rates['hater']
         
-        # p0 is the proportion of the majority label (range: [0.5, 1])
-        p0_raw = max(yes_count, no_count) / len(original_labels) if original_labels else 1.0
+        # Calculate confidence score with p0_raw as denominator
+        confidence_score = self.compute_confidence_score(p0, p1, p2, p3, p0_raw)
         
-        # Apply adjustment: p0 = p0 * 2 - 1 to map [0.5, 1] -> [0, 1]
-        p0 = p0_raw * 2 - 1
+        # Calculate backward compatibility metrics
+        consistency_rates = {}
+        flip_rates = {}
+        for dtype in ['contrarian', 'deceiver', 'hater']:
+            type_samples = [s for s in adversarial_samples if s.adversarial_type == dtype]
+            # Consistency rate: proportion matching their own original labels
+            total_consistent = sum(1 for s in type_samples if s.label == s.original_label)
+            consistency_rates[dtype] = total_consistent / len(type_samples) if type_samples else 0.0
+            flip_rates[dtype] = 1 - consistency_rates[dtype]
         
-        # Calculate other probabilities
-        p1 = 1 - flip_rates['contrarian']
-        p2 = 1 - flip_rates['deceiver']
-        p3 = 1 - flip_rates['hater']
-        
-        # Calculate confidence score
-        confidence_score = self.compute_confidence_score(p0, p1, p2, p3)
-        
-        # Calculate averages
         avg_flip_rate = sum(flip_rates.values()) / 3
         robustness_score = 1 - avg_flip_rate
         
         return {
+            'majority_label': majority_label,
+            'majority_aligned_rates': majority_aligned_rates,
+            'consistency_rates': consistency_rates,
             'flip_rates': flip_rates,
             'label_distributions': label_distributions,
             'detailed_tracking': detailed_tracking,
@@ -449,17 +467,16 @@ class AdversarialConfidenceEstimator:
     """
     
     def __init__(self, client: Union[LocalLLMClient, OnlineLLMClient],
-                 k1_samples: int = 20, k2_samples: int = 1,
+                 m_samples: int = 20,
                  gamma1: float = 1e-6, gamma2: float = 1e-6,
                  seed: int = None, max_workers: int = 10,
-                 weights: Tuple[float, float, float] = (1/4, 1/4, 1/2)):
+                 weights: Tuple[float, float, float] = (1/3, 1/3, 1/3)):
         """
         Initialize the estimator.
         
         Args:
             client: LLM client for requests
-            k1_samples: Number of original answer samples
-            k2_samples: Number of adversarial sets per original answer
+            m_samples: Number of original answer samples
             gamma1: Stabilization parameter for numerator
             gamma2: Stabilization parameter for denominator
             seed: Random seed (auto-increments per request)
@@ -473,8 +490,7 @@ class AdversarialConfidenceEstimator:
         if abs(sum(weights) - 1.0) > 1e-6:
             raise ValueError(f"weights must sum to 1, got {sum(weights)}")
         
-        self.k1_samples = k1_samples
-        self.k2_samples = k2_samples
+        self.m_samples = m_samples
         self.initial_seed = seed
         self.max_workers = max_workers
         self.weights = weights
@@ -502,20 +518,56 @@ class AdversarialConfidenceEstimator:
         
         logger.info("Starting confidence estimation")
         logger.info(f"Expert: {expert.expert_type}, Result: {'Yes' if result == 1 else 'No'}")
-        logger.info(f"Config: k1={self.k1_samples}, k2={self.k2_samples}, total={self.k1_samples * self.k2_samples * 3}")
+        logger.info(f"Config: m={self.m_samples}, total={self.m_samples * 3}")
+        
+        # Add subsection marker for original sampling phase
+        if get_report_logger is not None:
+            report_logger = get_report_logger()
+            if report_logger.enabled and report_logger.report_file is not None:
+                with report_logger._lock:
+                    with open(report_logger.report_file, 'a', encoding='utf-8') as f:
+                        f.write(f"#### Phase 1: Original Answer Sampling (m={self.m_samples})\n\n")
+                        f.write(f"Generating {self.m_samples} independent samples with the same question...\n\n")
         
         # Step 1: Sample original answers
-        original_answers = sample_original_answers(self.executor, question, self.k1_samples)
+        original_answers = sample_original_answers(self.executor, question, self.m_samples)
+        
+        # Add subsection marker for adversarial generation phase
+        if get_report_logger is not None:
+            report_logger = get_report_logger()
+            if report_logger.enabled and report_logger.report_file is not None:
+                with report_logger._lock:
+                    with open(report_logger.report_file, 'a', encoding='utf-8') as f:
+                        f.write(f"\n#### Phase 2: Adversarial Argument Generation (m={self.m_samples})\n\n")
+                        f.write(f"For each of the {self.m_samples} original answers, generating adversarial arguments (contrarian, deceiver, hater)...\n\n")
         
         # Step 2: Generate adversarial sets
         adversarial_sets = self.adversarial_generator.generate_all_sets(
-            question, original_answers, self.k2_samples
+            question, original_answers
         )
+        
+        # Add subsection marker for adversarial sampling phase
+        if get_report_logger is not None:
+            report_logger = get_report_logger()
+            if report_logger.enabled and report_logger.report_file is not None:
+                with report_logger._lock:
+                    with open(report_logger.report_file, 'a', encoding='utf-8') as f:
+                        f.write(f"\n#### Phase 3: Adversarially-Influenced Sampling (m×3={self.m_samples * 3})\n\n")
+                        f.write(f"For each adversarial argument set, generating responses influenced by contrarian, deceiver, and hater arguments...\n\n")
         
         # Step 3: Sample with adversarial arguments
         adversarial_samples = self.adversarial_sampler.sample_all(
             question, adversarial_sets
         )
+        
+        # Add subsection marker for metrics calculation
+        if get_report_logger is not None:
+            report_logger = get_report_logger()
+            if report_logger.enabled and report_logger.report_file is not None:
+                with report_logger._lock:
+                    with open(report_logger.report_file, 'a', encoding='utf-8') as f:
+                        f.write(f"\n#### Phase 4: Confidence Metrics Calculation\n\n")
+                        f.write(f"Analyzing flip rates and computing final confidence score...\n\n")
         
         # Step 4: Calculate metrics
         logger.info("Calculating metrics")
@@ -530,9 +582,8 @@ class AdversarialConfidenceEstimator:
             **metrics,
             'result': result,
             'expert_type': expert.expert_type,
-            'k1_samples': self.k1_samples,
-            'k2_samples': self.k2_samples,
-            'total_samples': self.k1_samples * self.k2_samples * 3,
+            'm_samples': self.m_samples,
+            'total_samples': self.m_samples * 3,
             'original_answers': original_answers,
             'adversarial_sets': adversarial_sets,
             'adversarial_samples': adversarial_samples
@@ -541,16 +592,15 @@ class AdversarialConfidenceEstimator:
 
 def create_adversarial_confidence_estimator(
     client: Union[LocalLLMClient, OnlineLLMClient],
-    k1_samples: int = 50, k2_samples: int = 1,
+    m_samples: int = 50,
     gamma1: float = 1e-6, gamma2: float = 1e-6,
     seed: int = None, max_workers: int = 10,
-    weights: Tuple[float, float, float] = (1/4, 1/4, 1/2)
+    weights: Tuple[float, float, float] = (1/3, 1/3, 1/3)
 ) -> AdversarialConfidenceEstimator:
     """Factory function to create estimator."""
     return AdversarialConfidenceEstimator(
         client=client,
-        k1_samples=k1_samples,
-        k2_samples=k2_samples,
+        m_samples=m_samples,
         gamma1=gamma1,
         gamma2=gamma2,
         seed=seed,

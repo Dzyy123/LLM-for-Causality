@@ -1,0 +1,8 @@
+var1,var2,relationship
+speed at the beginning,speed at the end,->
+grey value of a pixel,brightness of the screen,->
+position of a ball,time for passing a track segment,->
+time for passing 1. segment,time for passing 2. segment,->
+pixel vector of a patch,total brightness at the screen,->
+voltage,time required for one round,->
+temperature,time for 1/6 rotation,->

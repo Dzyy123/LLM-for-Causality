@@ -16,6 +16,12 @@ from llm_utils.logging_config import get_logger
 from llm_utils.base_client import BaseLLMClient
 from llm_utils.data_types import LLMResponse, ChatMessage
 
+# Import report logger (use try/except to avoid circular imports)
+try:
+    from llm_utils.report_logger import get_report_logger
+except ImportError:
+    get_report_logger = None
+
 
 # Module-level logger
 logger = get_logger("local_client")
@@ -489,11 +495,29 @@ class LocalLLMClient(BaseLLMClient):
                 "output_tokens": len(generated_tokens)
             }
         
-        return LLMResponse(
+        llm_response = LLMResponse(
             content=content.strip(),
             raw_response=generated_tokens if return_token_probs else outputs,
             metadata=metadata
         )
+        
+        # Log to report if enabled
+        if get_report_logger is not None:
+            report_logger = get_report_logger()
+            if report_logger.enabled and report_logger.report_file is not None:
+                log_metadata = {
+                    "model": self.model_id,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                }
+                report_logger.log_interaction(
+                    prompt=prompt,
+                    response=content.strip(),
+                    context=system_prompt if system_prompt else None,
+                    metadata=log_metadata
+                )
+        
+        return llm_response
     
     def get_token_probabilities(
         self,

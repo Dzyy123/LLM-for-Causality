@@ -1,0 +1,7 @@
+var1,var2,relationship
+Diastolic blood pressure,Serum insulin,<->
+Diastolic blood pressure,Plasma glucose concentration,<->
+Diastolic blood pressure,Body mass index,<->
+Serum insulin,Plasma glucose concentration,<->
+Serum insulin,Body mass index,<->
+Body mass index,Plasma glucose concentration,<->

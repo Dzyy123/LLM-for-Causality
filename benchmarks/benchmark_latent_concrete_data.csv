@@ -1,0 +1,9 @@
+var1,var2,relationship
+Cement,Compressive strength,->
+Blast furnace slag,Compressive strength,->
+Fly ash,Compressive strength,->
+Water,Compressive strength,->
+Superplasticizer,Compressive strength,->
+Coarse aggregate,Compressive strength,->
+Fine aggregate,Compressive strength,->
+Age,Compressive strength,->

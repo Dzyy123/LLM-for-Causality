@@ -155,7 +155,7 @@ class BackdoorPathExpert(BaseExpert):
     def generate_question(self) -> str:
         """Generate question about backdoor paths."""
         return PROMPT_TEMPLATES['backdoor_path'].format(
-            all_variables=', '.join(self.all_variables),
+            all_variables=', '.join(f'"{var}"' for var in self.all_variables),
             x1=self.x1,
             x2=self.x2
         )
@@ -171,7 +171,7 @@ class IndependenceExpert(BaseExpert):
         """Generate question about independence."""
         template_key = 'independence_after_blocking' if self.after_blocking else 'independence'
         return PROMPT_TEMPLATES[template_key].format(
-            all_variables=', '.join(self.all_variables),
+            all_variables=', '.join(f'"{var}"' for var in self.all_variables),
             x1=self.x1,
             x2=self.x2
         )
@@ -187,7 +187,7 @@ class LatentConfounderExpert(BaseExpert):
         """Generate question about latent confounders."""
         template_key = 'latent_confounder_after_blocking' if self.after_blocking else 'latent_confounder'
         return PROMPT_TEMPLATES[template_key].format(
-            all_variables=', '.join(self.all_variables),
+            all_variables=', '.join(f'"{var}"' for var in self.all_variables),
             x1=self.x1,
             x2=self.x2
         )
@@ -203,7 +203,7 @@ class CausalDirectionExpert(BaseExpert):
         """Generate question about causal direction."""
         template_key = 'causal_direction_after_blocking' if self.after_blocking else 'causal_direction'
         return PROMPT_TEMPLATES[template_key].format(
-            all_variables=', '.join(self.all_variables),
+            all_variables=', '.join(f'"{var}"' for var in self.all_variables),
             x1=self.x1,
             x2=self.x2
         )

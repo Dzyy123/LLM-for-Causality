@@ -1,0 +1,11 @@
+var1,var2,relationship
+Alkaline phosphotase,Alanine aminotransferase,<->
+Alkaline phosphotase,Gamma-glutamyl transpeptdase,<->
+Alkaline phosphotase,Aspartate aminotransferase,<->
+Alkaline phosphotase,Mean corpuscular volume,<->
+Aspartate aminotransferase,Gamma-glutamyl transpeptdase,<->
+Aspartate aminotransferase,Alanine aminotransferase,<->
+Aspartate aminotransferase,Mean corpuscular volume,<->
+Mean corpuscular volume,Gamma-glutamyl transpeptdase,<->
+Mean corpuscular volume,Alanine aminotransferase,<->
+Gamma-glutamyl transpeptdase,Alanine aminotransferase,<->

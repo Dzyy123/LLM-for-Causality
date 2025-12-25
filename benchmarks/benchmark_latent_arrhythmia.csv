@@ -1,0 +1,4 @@
+var1,var2,relationship
+Height,Heart rate,<->
+Height,Weight,<->
+Weight,Heart rate,<->
